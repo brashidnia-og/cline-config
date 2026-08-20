@@ -94,11 +94,16 @@ Options:
   -n, --dry-run    Print destinations and actions without copying
   --project DIR    Install into a project root instead of global locations
                    (copies .clinerules/ and .cline/ into DIR)
+  --skip-mcp       Do not merge MCP servers into Cline settings (global only)
 
 Global destinations (auto-detected):
   Rules:   macOS  ~/Documents/Cline/Rules
            Linux  \$XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
   Skills:  ~/.cline/skills   (macOS and Linux)
+
+MCP (global install only): merges mcp/cline_mcp_settings.template.json into
+Cline IDE/CLI settings. See mcp/SECURITY.md and mcp/env.example.sh.
+Or run: ./bin/install-mcp.sh
 
 EOF
 }
@@ -128,6 +133,7 @@ install_profile() {
 
   local dry_run=0
   local project_dir=""
+  local skip_mcp=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -144,6 +150,10 @@ install_profile() {
         project_dir="$2"
         shift 2
         ;;
+      --skip-mcp)
+        skip_mcp=1
+        shift
+        ;;
       *)
         die "unknown option: $1 (try --help)"
         ;;
@@ -158,6 +168,9 @@ install_profile() {
   [[ -d "$rules_src" ]] || die "missing ${rules_src}"
   [[ -d "$skills_src" ]] || die "missing ${skills_src}"
 
+  # shellcheck source=mcp-common.sh
+  source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mcp-common.sh"
+
   if [[ -n "$project_dir" ]]; then
     [[ -d "$project_dir" ]] || die "project dir not found: $project_dir"
     project_dir="$(cd "$project_dir" && pwd)"
@@ -165,6 +178,7 @@ install_profile() {
     if [[ "$dry_run" == "1" ]]; then
       info "  [dry-run] sync ${rules_src}/ -> ${project_dir}/.clinerules/"
       info "  [dry-run] sync ${profile_root}/.cline/ -> ${project_dir}/.cline/"
+      info "  [dry-run] note: MCP settings are global; run ./bin/install-mcp.sh separately"
       info "Dry run complete."
       return
     fi
@@ -174,6 +188,7 @@ install_profile() {
     info "Done."
     info "  ${project_dir}/.clinerules"
     info "  ${project_dir}/.cline/skills"
+    info "Note: Cline MCP config is global (not project-local). Run ./bin/install-mcp.sh to merge MCP servers."
     return
   fi
 
@@ -192,6 +207,13 @@ install_profile() {
 
   sync_tree "$rules_src" "$rules_dest" "$dry_run"
   sync_tree "$skills_src" "$skills_dest" "$dry_run"
+
+  if [[ "$skip_mcp" -eq 0 ]]; then
+    info "Merging MCP servers (use --skip-mcp to skip)..."
+    install_mcp_settings "$dry_run"
+  else
+    info "Skipping MCP merge (--skip-mcp)."
+  fi
 
   if [[ "$dry_run" == "1" ]]; then
     info "Dry run complete."

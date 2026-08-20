@@ -16,7 +16,7 @@ Before proposing structure, inspect:
 - test harness (Vitest, Testing Library, MSW, Playwright),
 - installed React/Redux/Vite versions in `package.json`.
 
-Use Context7 for version-specific APIs after reading installed versions. Do not invent aliases, env keys, or store patterns absent from the repo.
+Use external-context7 / local-context7 for version-specific APIs after reading installed versions. Do not invent aliases, env keys, or store patterns absent from the repo.
 
 ## 2. Define UX and data ownership
 
@@ -50,7 +50,7 @@ Narrow → broad as risk warrants:
 - typecheck (`tsc --noEmit` or repo script),
 - targeted Vitest/RTL tests,
 - Playwright for critical E2E flows if configured,
-- Playwright MCP / Chrome DevTools MCP for runtime evidence when UI behavior is unclear.
+- local-playwright / local-chrome-devtools for runtime evidence when UI behavior is unclear.
 
 ## 6. Final gate
 

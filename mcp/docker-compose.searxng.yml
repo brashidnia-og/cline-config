@@ -1,0 +1,19 @@
+# Optional local SearXNG for users who do not already run an instance
+# (e.g. Open WebUI / remote host). Prefer pointing SEARXNG_URL at an
+# existing instance or an SSH tunnel instead of starting a second copy.
+#
+#   docker compose -f mcp/docker-compose.searxng.yml up -d
+#   export SEARXNG_URL=http://127.0.0.1:8080
+#
+# Enable JSON API in SearXNG settings if searches fail (formats include json).
+# Official image docs: https://docs.searxng.org/
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    # Uncomment and mount a custom settings.yml if you need to enable json format explicitly:
+    # volumes:
+    #   - ./searxng-settings.yml:/etc/searxng/settings.yml:ro

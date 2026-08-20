@@ -71,7 +71,7 @@ Estimate bottlenecks from the real workload where possible:
 - queue/backpressure,
 - horizontal/vertical scaling limits.
 
-Use remote-math for non-trivial capacity/precision calculations when useful.
+Use local-precision-math for non-trivial capacity/precision calculations when useful.
 
 Define observability:
 - logs with useful identifiers but no secrets,
@@ -97,10 +97,10 @@ Do not choose the most sophisticated or familiar pattern by default. Select the 
 
 ## 8. MCP use
 
-- Context7: verify external library/framework capabilities at the installed/target version.
-- Tavily: verify current official support matrices, release notes, advisories, or standards when freshness matters.
+- external-context7 / local-context7: verify external library/framework capabilities at the installed/target version. Prefer external-context7 when enabled.
+- local-searxng (preferred when enabled) or external-brave-search / external-tavily: verify current official support matrices, release notes, advisories, or standards when freshness matters.
 - Browser MCPs: only when architecture depends on actual browser/runtime behavior.
-- remote-math: capacity, precision, rates, sizing.
+- local-precision-math: capacity, precision, rates, sizing.
 
 External tools resolve external facts; they do not dictate repository architecture.
 

@@ -56,15 +56,15 @@ Separate confirmed vulnerabilities from defense-in-depth suggestions. Do not inf
 
 ## 4. Browser security
 
-Use Playwright MCP for controlled user-flow/authz checks in test/non-production accounts.
-Use Chrome DevTools MCP to inspect cookies, network requests, CORS/CSP behavior, client-bundle exposure, and console/runtime evidence when needed.
+Use local-playwright for controlled user-flow/authz checks in test/non-production accounts.
+Use local-chrome-devtools to inspect cookies, network requests, CORS/CSP behavior, client-bundle exposure, and console/runtime evidence when needed.
 
 Never expose real tokens/cookies/secrets in reports or external tools. Do not perform destructive or unauthorized actions against production systems.
 
 ## 5. External research
 
-Use Context7 for version-specific security configuration semantics of frameworks/libraries.
-Use Tavily for current official advisories/CVEs/release notes when freshness matters. Prefer vendor/maintainer/NVD-like primary sources and verify installed versions locally.
+Use external-context7 / local-context7 for version-specific security configuration semantics of frameworks/libraries.
+Use external-brave-search / external-tavily for current official advisories/CVEs/release notes when freshness matters. Prefer vendor/maintainer/NVD-like primary sources and verify installed versions locally.
 
 An advisory does not prove exploitability in this repository; determine whether the vulnerable feature/path/version is actually present.
 

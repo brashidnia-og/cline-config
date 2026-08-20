@@ -70,9 +70,9 @@ A stress test can complement but not replace a deterministic reproduction when o
 
 ## 6. Browser tests
 
-Use Playwright MCP to explore/reproduce a flow before encoding it in repository-owned tests. Prefer semantic roles/labels and stable user-facing behavior over CSS/XPath implementation details.
+Use local-playwright to explore/reproduce a flow before encoding it in repository-owned tests. Prefer semantic roles/labels and stable user-facing behavior over CSS/XPath implementation details.
 
-Use Chrome DevTools MCP for network/console/runtime evidence when a browser test fails for reasons not visible in the DOM.
+Use local-chrome-devtools for network/console/runtime evidence when a browser test fails for reasons not visible in the DOM.
 
 MCP interaction is diagnostic evidence; durable regressions should live in repository tests when appropriate.
 

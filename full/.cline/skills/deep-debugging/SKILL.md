@@ -62,12 +62,12 @@ Compare:
 - generated artifacts,
 - last-known-good commit/change when useful.
 
-Use Context7 for exact library/framework semantics at the installed version. Use Tavily for current official known issues/advisories/release notes after sanitizing errors. External reports are hypotheses until local evidence connects them to this failure.
+Use external-context7 / local-context7 for exact library/framework semantics at the installed version. Use external-brave-search / external-tavily for current official known issues/advisories/release notes after sanitizing errors. External reports are hypotheses until local evidence connects them to this failure.
 
 ## 6. Browser failures
 
-Prefer Playwright MCP to reproduce a deterministic user flow and inspect semantic UI state.
-Use Chrome DevTools MCP for console, network, runtime, source-map, and performance evidence.
+Prefer local-playwright to reproduce a deterministic user flow and inspect semantic UI state.
+Use local-chrome-devtools for console, network, runtime, source-map, and performance evidence.
 Use both when the functional sequence and low-level browser evidence are both required.
 
 Do not expose real tokens/cookies/customer data. Prefer test accounts/non-production state.

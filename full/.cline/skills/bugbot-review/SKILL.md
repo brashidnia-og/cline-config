@@ -104,11 +104,11 @@ Severity:
 ## 6. MCP evidence
 
 Repository behavior must be grounded locally.
-- Context7: verify version-specific external API/framework semantics.
-- Tavily: current official advisories/release notes/known issues after sanitization.
+- external-context7 / local-context7: verify version-specific external API/framework semantics. Prefer external-context7 when enabled.
+- local-searxng (preferred when enabled) or external-brave-search / external-tavily: current official advisories/release notes/known issues after sanitization.
 - Playwright: reproduce changed UI behavior.
 - Chrome DevTools: validate network/console/runtime behavior.
-- remote-math: independently verify financial/precision/capacity calculations.
+- local-precision-math: independently verify financial/precision/capacity calculations.
 
 External evidence can strengthen a finding but cannot substitute for a reachable local path.
 

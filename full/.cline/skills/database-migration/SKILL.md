@@ -41,7 +41,7 @@ For each DDL change consider:
 - replication/transaction-log pressure,
 - deploy sequencing.
 
-Use Context7 or Tavily only to verify external DB/ORM/version-specific behavior, then relate it back to the actual schema and runtime.
+Use external-context7 / local-context7 or external-brave-search / external-tavily only to verify external DB/ORM/version-specific behavior, then relate it back to the actual schema and runtime.
 
 ## 4. Backfills/data migrations
 

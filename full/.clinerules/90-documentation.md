@@ -39,4 +39,4 @@ Before finalizing docs:
 - do not expose secrets/private data,
 - ensure external claims are tied to an underlying source/version/date rather than “the MCP”.
 
-Use Context7 for version-specific library docs, Tavily for current official public references, Playwright for user-facing UI procedures, Chrome DevTools for browser diagnostic procedures, and remote-math for numerical examples when these materially improve correctness.
+Use Context7 (`external-context7` / `local-context7`) for version-specific library docs, Brave/Tavily (`external-brave-search` / `external-tavily`) for current official public references, Playwright (`local-playwright`) for user-facing UI procedures, Chrome DevTools (`local-chrome-devtools`) for browser diagnostic procedures, and `local-precision-math` for numerical examples when these materially improve correctness.
