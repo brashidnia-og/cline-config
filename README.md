@@ -52,7 +52,7 @@ Template: [`mcp/cline_mcp_settings.template.json`](mcp/cline_mcp_settings.templa
 | `local-*` | Local data plane (no third-party SaaS for tool payloads) |
 | `external-*` | Queries/content go to a vendor API |
 
-Defaults after install: **`local-*` enabled** except **`local-context7`** (disabled placeholder) and **`local-searxng`** (needs `SEARXNG_URL`); **`external-*` installed but disabled**. Toggle by editing `"disabled"` in the JSON (prefer that over the Cline UI toggle when using `${env:…}` — see [cline#9065](https://github.com/cline/cline/issues/9065)). Re-running install upserts package server keys but **preserves** existing `disabled` / `timeout` / `autoApprove` / `args` / `env` on those keys. Never put an unset `${env:…}` in a streamableHttp `url` — Cline validates URLs after env expansion and rejects the whole file.
+Defaults after install: **`local-*` enabled** except **`local-context7`** (disabled placeholder) and **`local-searxng`** (needs `SEARXNG_URL`); **`external-*` installed but disabled**. Toggle by editing `"disabled"` in the JSON (prefer that over the Cline UI toggle — see [cline#9065](https://github.com/cline/cline/issues/9065)). Re-running install upserts package server keys but **preserves** existing `disabled` / `timeout` / `autoApprove` / `args` (not `env` — template/`install-mcp.sh` owns `env` so CLI+IDE stay compatible). StreamableHttp `url` fields must be literal valid URLs (never `${env:…}`).
 
 | Server | Role |
 |--------|------|
@@ -65,11 +65,11 @@ Defaults after install: **`local-*` enabled** except **`local-context7`** (disab
 | `external-context7` | Library/API docs (Context7 / Upstash) |
 | `external-ref` / `external-deepwiki` | Alternate docs RAG |
 
-**SearXNG (`local-searxng`):** export `SEARXNG_URL` from `~/.zprofile` / `~/.profile` (example with SSH tunnel local `8180` → remote `8080`: `http://127.0.0.1:8180`), set `"disabled": false` on `local-searxng`, keep the tunnel up, fully relaunch the IDE. See [`mcp/env.example.sh`](mcp/env.example.sh). Optional local instance: [`mcp/docker-compose.searxng.yml`](mcp/docker-compose.searxng.yml).
+**SearXNG (`local-searxng`):** export `SEARXNG_URL` from `~/.zprofile` / `~/.profile` (or Linux `~/.config/environment.d/*.conf` for GUI apps; example with SSH tunnel local `8180` → remote `8080`: `http://127.0.0.1:8180`), set `"disabled": false` on `local-searxng`, keep the tunnel up, fully relaunch Cline/IDE. See [`mcp/env.example.sh`](mcp/env.example.sh). Optional local instance: [`mcp/docker-compose.searxng.yml`](mcp/docker-compose.searxng.yml).
 
-Secrets / URLs: export from login profile using [`mcp/env.example.sh`](mcp/env.example.sh), then **fully quit and relaunch** the IDE. Requires Cline ≥ 3.43 for `${env:VAR}` expansion. Risk matrix: [`mcp/SECURITY.md`](mcp/SECURITY.md).
+Secrets / URLs: export into the **host process** environment using [`mcp/env.example.sh`](mcp/env.example.sh), then **fully quit and relaunch** Cline/IDE. Stdio MCP servers inherit that env on both Cline CLI and the IDE extension (do not use `${env:VAR}` passthroughs in MCP JSON — CLI does not expand them). Risk matrix: [`mcp/SECURITY.md`](mcp/SECURITY.md).
 
-`local-precision-math` needs [Bun](https://bun.sh) (`npx` alone is not enough — the package’s entrypoint is `#!/usr/bin/env bun`). Without Bun you get `MCP error -32000: Connection closed`. The template prepends `$HOME/.bun/bin` to `PATH` for that server.
+`local-precision-math` needs [Bun](https://bun.sh) (`npx` alone is not enough — the package’s entrypoint is `#!/usr/bin/env bun`). Without Bun you get `MCP error -32000: Connection closed`. `install-mcp.sh` materializes `PATH` to `$HOME/.bun/bin:$PATH` for that server.
 
 ## Full layout
 

@@ -14,7 +14,11 @@ Server names in this package encode the **runtime data plane**:
 - **`local-*`** enabled except **`local-context7`** (disabled placeholder) and **`local-searxng`** (`disabled: true` until `SEARXNG_URL` is set)
 - **`external-*`**: `disabled: true` until you opt in
 
-Prefer flipping `"disabled"` in `cline_mcp_settings.json` over the Cline UI toggle when entries use `${env:…}` — UI enable/disable can rewrite expanded secrets into the file ([cline#9065](https://github.com/cline/cline/issues/9065)). Never leave streamableHttp `url` as an unset `${env:…}` (Cline expands then validates; empty URL fails the whole settings file).
+Prefer flipping `"disabled"` in `cline_mcp_settings.json` over the Cline UI toggle ([cline#9065](https://github.com/cline/cline/issues/9065) can rewrite settings when toggling in UI). StreamableHttp `url` fields must be literal valid URLs (never `${env:…}` — Cline CLI does not expand them, and an empty/invalid URL fails the settings file).
+
+## Environment variables
+
+Stdio MCP servers (`local-searxng`, `external-*` with `command`) inherit env from the **Cline host process** (CLI and IDE). Export keys/URLs via [`env.example.sh`](env.example.sh). Do not add identity `"VAR": "${env:VAR}"` blocks in MCP JSON — on Cline CLI those literals overwrite real values. Re-running `./bin/install-mcp.sh` resets package-owned `env` from the template (Bun PATH is materialized at install); `disabled` / `timeout` / `autoApprove` / `args` are preserved.
 
 ## Risk matrix
 
@@ -22,7 +26,7 @@ Prefer flipping `"disabled"` in `cline_mcp_settings.json` over the Cline UI togg
 |--------|----------------------|-------|
 | `local-playwright` | No (vendor SaaS) | Agent sees DOM/cookies/network; persisted profiles keep logins on disk. Avoid prod + real PII. Prefer isolated mode for sensitive apps. |
 | `local-chrome-devtools` | No (vendor SaaS) | Same local privilege: console/network may contain secrets. |
-| `local-precision-math` | No | Expressions only. Requires **Bun** on PATH (`#!/usr/bin/env bun`); missing Bun → MCP `-32000 Connection closed`. Template prepends `$HOME/.bun/bin` via `env.PATH`. |
+| `local-precision-math` | No | Expressions only. Requires **Bun** on PATH (`#!/usr/bin/env bun`); missing Bun → MCP `-32000 Connection closed`. `install-mcp.sh` materializes `env.PATH` to `$HOME/.bun/bin:$PATH`. |
 | `local-context7` | N/A (off) | Disabled placeholder with a literal dummy URL. Prefer `external-context7`. |
 | `local-searxng` | To **your** SearXNG (`SEARXNG_URL`) | MCP runs locally; queries hit your instance (local, tunneled, or remote). Upstream engines behind SearXNG still contact the public web. Prefer over Brave/Tavily for privacy/control. |
 | `external-brave-search` | Yes → Brave | Search query text. Sanitize prompts. |

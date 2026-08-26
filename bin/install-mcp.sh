@@ -14,13 +14,15 @@ Usage: $(basename "$0") [options]
 
 Merge mcp/cline_mcp_settings.template.json into Cline MCP settings files.
 Package-owned server keys (local-*, external-*) are upserted; other servers are left alone.
-Existing disabled/timeout/autoApprove/args/env on those keys are preserved across re-runs.
+Existing disabled/timeout/autoApprove/args on those keys are preserved across re-runs.
+env is taken from the template (Bun PATH materialized at install) so configs work on
+both Cline CLI and the IDE extension — stdio servers inherit the host process env.
 
 Options:
   -h, --help     Show this help
   -n, --dry-run  Print targets and actions without writing
 
-Secrets use \${env:VAR} — export keys from ~/.zprofile or ~/.profile (see mcp/env.example.sh).
+Export keys/URLs from ~/.zprofile, ~/.profile, or ~/.config/environment.d/ (see mcp/env.example.sh).
 Risk matrix: mcp/SECURITY.md
 EOF
 }

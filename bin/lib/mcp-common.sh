@@ -106,7 +106,11 @@ resolve_mcp_merge_targets() {
 
 # Merge template mcpServers into dest JSON. Upserts package-owned keys; leaves
 # unrelated servers alone. When a key already exists, keep user disabled /
-# timeout / autoApprove / args / env so re-install does not reset toggles.
+# timeout / autoApprove / args so re-install does not reset toggles.
+# env comes from the template (materialized) so broken IDE-only ${env:VAR}
+# passthroughs are repaired for Cline CLI compatibility.
+BUN_PATH_TOKEN="__CLINE_CONFIG_BUN_PATH__"
+
 merge_mcp_settings_file() {
   local template="$1"
   local dest="$2"
@@ -133,13 +137,26 @@ merge_mcp_settings_file() {
     die "python3 is required to merge MCP settings"
   fi
 
-  python3 - "$template" "$dest" <<'PY'
+  python3 - "$template" "$dest" "$BUN_PATH_TOKEN" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
 template_path = Path(sys.argv[1])
 dest_path = Path(sys.argv[2])
+bun_path_token = sys.argv[3]
+
+bun_path_value = f"{Path.home()}/.bun/bin:{os.environ.get('PATH', '')}"
+
+def materialize(value):
+    if isinstance(value, dict):
+        return {k: materialize(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [materialize(v) for v in value]
+    if isinstance(value, str):
+        return value.replace(bun_path_token, bun_path_value)
+    return value
 
 with template_path.open(encoding="utf-8") as f:
     template = json.load(f)
@@ -166,13 +183,14 @@ if servers is None:
 elif not isinstance(servers, dict):
     raise SystemExit(f"{dest_path}: mcpServers must be an object")
 
-PRESERVE_KEYS = ("disabled", "timeout", "autoApprove", "args", "env")
+# env is intentionally not preserved: template (after materialize) is source of truth
+PRESERVE_KEYS = ("disabled", "timeout", "autoApprove", "args")
 
 for name, cfg in tmpl_servers.items():
     if not isinstance(cfg, dict):
-        servers[name] = cfg
+        servers[name] = materialize(cfg)
         continue
-    merged = dict(cfg)
+    merged = materialize(dict(cfg))
     existing = servers.get(name)
     if isinstance(existing, dict):
         for key in PRESERVE_KEYS:
@@ -188,38 +206,43 @@ PY
   info "  merged MCP servers -> ${dest}"
 }
 
-# Expand ${env:VAR} like Cline, then ensure streamableHttp/sse urls are valid.
-# Prevents "Invalid MCP settings schema" from empty expanded URLs.
+# Ensure streamableHttp/sse urls are literal valid URLs (no ${env:} placeholders).
+# Also reject any leftover ${env:VAR} in package-owned servers — Cline CLI does
+# not expand them and would overwrite real process env with the literal string.
 validate_mcp_settings_urls() {
   local dest="$1"
   local dry_run="${2:-0}"
+  local package_names_csv="${3:-}"
 
   [[ -f "$dest" ]] || return 0
   command -v python3 >/dev/null 2>&1 || die "python3 is required to validate MCP settings"
 
   if [[ "$dry_run" == "1" ]]; then
-    info "  [dry-run] validate streamableHttp/sse URLs in ${dest}"
+    info "  [dry-run] validate MCP settings in ${dest}"
   fi
 
-  python3 - "$dest" <<'PY'
+  python3 - "$dest" "$package_names_csv" "$BUN_PATH_TOKEN" <<'PY'
 import json
-import os
 import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 dest_path = Path(sys.argv[1])
-env_pat = re.compile(r"\$\{env:([A-Za-z_][A-Za-z0-9_]*)\}")
+package_csv = sys.argv[2]
+bun_path_token = sys.argv[3]
+package_names = {n for n in package_csv.split(",") if n} if package_csv else set()
+env_lit_pat = re.compile(r"\$\{env:")
 
-def expand(value):
+def walk_strings(value, path=""):
     if isinstance(value, dict):
-        return {k: expand(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [expand(v) for v in value]
-    if isinstance(value, str):
-        return env_pat.sub(lambda m: os.environ.get(m.group(1), ""), value)
-    return value
+        for k, v in value.items():
+            yield from walk_strings(v, f"{path}.{k}" if path else k)
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from walk_strings(v, f"{path}[{i}]")
+    elif isinstance(value, str):
+        yield path, value
 
 def is_valid_url(s: str) -> bool:
     try:
@@ -239,24 +262,50 @@ errors = []
 for name, cfg in servers.items():
     if not isinstance(cfg, dict):
         continue
+    check_env_lit = (not package_names) or (name in package_names)
+    if check_env_lit:
+        for path, s in walk_strings(cfg):
+            if bun_path_token and bun_path_token in s:
+                # Allowed only in the committed template before materialize.
+                if dest_path.name == "cline_mcp_settings.template.json":
+                    continue
+                errors.append(f"{name}.{path}: unresolved install token {bun_path_token!r}")
+            if env_lit_pat.search(s):
+                errors.append(
+                    f"{name}.{path}: contains ${{env:...}} which Cline CLI does not expand "
+                    f"(omit identity env passthroughs; inherit from the host process)"
+                )
     transport = cfg.get("type")
     if transport not in ("streamableHttp", "sse"):
-        # No explicit remote type: only validate url if present without command (remote-shaped).
         if "url" not in cfg or cfg.get("command"):
             continue
         transport = transport or "remote"
-    url = expand(cfg.get("url", ""))
+    url = cfg.get("url", "")
     if not isinstance(url, str) or not is_valid_url(url):
         errors.append(
-            f"{name}: invalid {transport} url after env expand: {url!r} "
-            f"(use a literal valid URL; never leave streamableHttp url as unset ${{env:...}})"
+            f"{name}: invalid {transport} url: {url!r} "
+            f"(use a literal valid URL; never use ${{env:...}} in streamableHttp url)"
         )
 
 if errors:
-    print(f"MCP URL validation failed for {dest_path}:", file=sys.stderr)
+    print(f"MCP settings validation failed for {dest_path}:", file=sys.stderr)
     for e in errors:
         print(f"  - {e}", file=sys.stderr)
     raise SystemExit(1)
+PY
+}
+
+package_mcp_server_names() {
+  local template
+  template="$(resolve_mcp_template)"
+  python3 - "$template" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+servers = data.get("mcpServers") or {}
+print(",".join(servers.keys()))
 PY
 }
 
@@ -283,17 +332,17 @@ install_mcp_settings() {
     info "  - ${t}"
   done
 
+  local package_names
+  package_names="$(package_mcp_server_names)"
+
   # Validate template first so we fail before writing bad URLs.
-  validate_mcp_settings_urls "$template" "$dry_run"
+  validate_mcp_settings_urls "$template" "$dry_run" "$package_names"
 
   for t in "${targets[@]}"; do
     merge_mcp_settings_file "$template" "$t" "$dry_run"
-    if [[ "$dry_run" == "1" ]]; then
-      if [[ -f "$t" ]]; then
-        validate_mcp_settings_urls "$t" 1
-      fi
-    else
-      validate_mcp_settings_urls "$t" 0
+    # Validate destinations only after a real write (dry-run does not merge).
+    if [[ "$dry_run" != "1" ]]; then
+      validate_mcp_settings_urls "$t" 0 "$package_names"
     fi
   done
 
@@ -302,7 +351,13 @@ install_mcp_settings() {
     return
   fi
 
-  info "MCP merge done. Enable external-* servers by setting disabled:false in JSON after exporting keys (see mcp/env.example.sh)."
-  info "Prefer editing disabled in JSON over the Cline UI toggle when using \${env:VAR} (UI can rewrite secrets)."
-  info "Fully quit and relaunch the IDE after changing shell profile exports."
+  if [[ -n "${SEARXNG_URL:-}" ]]; then
+    info "SEARXNG_URL is set (${SEARXNG_URL}). Set local-searxng disabled:false in MCP settings to enable web search."
+  else
+    info "SEARXNG_URL is unset. Export it (see mcp/env.example.sh), then set local-searxng disabled:false."
+  fi
+
+  info "MCP merge done. Stdio MCP servers inherit env from the Cline host process (CLI and IDE)."
+  info "Export keys/URLs in your login environment (mcp/env.example.sh), then fully quit and relaunch Cline/IDE."
+  info "Enable servers by setting disabled:false in JSON (prefer that over the Cline UI toggle)."
 }
