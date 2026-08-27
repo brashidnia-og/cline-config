@@ -43,6 +43,27 @@ cp -a full/.clinerules full/.cline /path/to/your-project/
 cp -a lite/.clinerules lite/.cline /path/to/your-project/
 ```
 
+### macOS notes
+
+The scripts are cross-platform and detect macOS automatically, but macOS has two
+quirks worth knowing before relying on environment variables:
+
+1. **GUI-launched editors don't inherit your shell env.** VS Code / Cursor /
+   Cline opened from the Dock or Spotlight do not read `~/.zprofile`, so exported
+   keys/URLs (`SEARXNG_URL`, `BRAVE_API_KEY`, …) won't reach the MCP servers.
+   Either launch the editor from a terminal (`code .` / `cursor .`), or use
+   `launchctl setenv VAR value`. Details in [`mcp/env.example.sh`](mcp/env.example.sh).
+   `local-precision-math` is exempt — its `PATH` is pinned by the installer.
+2. **Bun** is only needed by `local-precision-math`. If it's missing, install it
+   with `curl -fsSL https://bun.sh/install | bash` or `brew install oven-sh/bun/bun`,
+   or run `./bin/install-mcp.sh --install-bun` to do it for you (explicit opt-in).
+
+Verify a fresh machine **before** writing anything with the read-only pre-flight:
+
+```bash
+./bin/install-mcp.sh --check     # reports OS, python3/npx/bun, env vars, target files
+```
+
 ## MCP servers
 
 Template: [`mcp/cline_mcp_settings.template.json`](mcp/cline_mcp_settings.template.json). Naming:

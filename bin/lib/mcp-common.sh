@@ -309,6 +309,160 @@ print(",".join(servers.keys()))
 PY
 }
 
+# Report (non-fatal) prerequisite status as a checklist. Returns 0 if all
+# required tools (python3, node/npx) are present, 1 otherwise. Used by --check
+# and by dry-runs, where a missing tool is reported but must not abort the run.
+report_prerequisites() {
+  local os
+  os="$(detect_os 2>/dev/null || echo unsupported)"
+  if [[ "$os" == "unsupported" ]]; then
+    info "  OS:        unsupported ($(uname -s))"
+    return 1
+  fi
+  info "  OS:         ${os}"
+  local rc=0
+
+  if command -v python3 >/dev/null 2>&1; then
+    info "  python3:   OK"
+  else
+    rc=1
+    info "  python3:   MISSING  (required: merge/validate MCP settings)"
+    install_hint python3
+  fi
+
+  if command -v npx >/dev/null 2>&1; then
+    info "  node/npx:  OK"
+  else
+    rc=1
+    info "  node/npx:  MISSING  (required: stdio MCP servers launch via npx)"
+    install_hint node
+  fi
+
+  if command -v bun >/dev/null 2>&1 || [[ -x "${HOME}/.bun/bin/bun" ]]; then
+    info "  bun:       OK       (needed only by local-precision-math)"
+  else
+    info "  bun:       MISSING  (local-precision-math will fail; other servers unaffected)"
+    install_hint bun
+  fi
+
+  return "$rc"
+}
+
+# Report which optional API keys / URLs are exported in the host environment.
+# Read-only. Stdio MCP servers inherit these from the Cline host process, so they
+# must be exported in the login shell / app environment (see mcp/env.example.sh).
+report_env_vars() {
+  if [[ -n "${SEARXNG_URL:-}" ]]; then
+    info "  SEARXNG_URL:       set    -> local-searxng"
+  else
+    info "  SEARXNG_URL:       unset  -> local-searxng (SearXNG JSON API URL, e.g. http://127.0.0.1:8180)"
+  fi
+  if [[ -n "${BRAVE_API_KEY:-}" ]]; then
+    info "  BRAVE_API_KEY:     set    -> external-brave-search"
+  else
+    info "  BRAVE_API_KEY:     unset  -> external-brave-search (Brave Search API key)"
+  fi
+  if [[ -n "${TAVILY_API_KEY:-}" ]]; then
+    info "  TAVILY_API_KEY:    set    -> external-tavily"
+  else
+    info "  TAVILY_API_KEY:    unset  -> external-tavily (Tavily research API key)"
+  fi
+  if [[ -n "${CONTEXT7_API_KEY:-}" ]]; then
+    info "  CONTEXT7_API_KEY:  set    -> external-context7"
+  else
+    info "  CONTEXT7_API_KEY:  unset  -> external-context7 (Context7/Upstash API key)"
+  fi
+  if [[ -n "${REF_API_KEY:-}" ]]; then
+    info "  REF_API_KEY:       set    -> external-ref"
+  else
+    info "  REF_API_KEY:       unset  -> external-ref (Ref docs API key)"
+  fi
+}
+
+# --install-bun: if Bun is not already present, install it with the official
+# non-interactive installer (installs to $HOME/.bun on both macOS and Linux), then
+# verify it lands on PATH. Explicit opt-in: it downloads and runs a remote script.
+# After install, the local-precision-math server's PATH is pinned by the merge, so
+# it works even for a GUI-launched IDE.
+maybe_install_bun() {
+  if command -v bun >/dev/null 2>&1 || [[ -x "${HOME}/.bun/bin/bun" ]]; then
+    info "Bun already present: $({ command -v bun 2>/dev/null || echo "${HOME}/.bun/bin/bun"; })"
+    return 0
+  fi
+
+  local os
+  os="$(detect_os)"
+  if [[ "$os" == "unsupported" ]]; then
+    die "unsupported OS '$(uname -s)'; only macOS and Linux are supported"
+  fi
+
+  info "Bun not found. Installing with the official Bun installer (https://bun.sh) ..."
+  info "  (this downloads and runs a remote script -- proceed only if you trust bun.sh)"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL https://bun.sh/install | bash
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://bun.sh/install | bash
+  else
+    die "curl or wget is required to install Bun (see https://bun.sh/install)"
+  fi
+
+  if command -v bun >/dev/null 2>&1 || [[ -x "${HOME}/.bun/bin/bun" ]]; then
+    info "Bun installed successfully."
+  else
+    die "Bun installer ran but 'bun' is not on PATH. Add \$HOME/.bun/bin to PATH (see mcp/env.example.sh) and relaunch."
+  fi
+}
+
+# --check / --verify: read-only pre-flight. Reports the OS, required/optional
+# tools, relevant environment variables, and the settings files a merge would
+# touch. Never writes. Returns 0 if all required prerequisites are present, else 1.
+run_mcp_check() {
+  local template
+  template="$(resolve_mcp_template)"
+  if [[ ! -f "$template" ]]; then
+    die "MCP template missing: $template"
+  fi
+
+  local os
+  os="$(detect_os 2>/dev/null || echo unsupported)"
+  if [[ "$os" == "unsupported" ]]; then
+    info "MCP pre-flight check: unsupported OS '$(uname -s)'. Only macOS and Linux are supported."
+    return 1
+  fi
+
+  info "MCP pre-flight check (read-only; nothing is written)"
+  info "Template: ${template}"
+  info ""
+
+  info "Prerequisites:"
+  local pre_rc=0
+  report_prerequisites || pre_rc=1
+  info ""
+
+  info "Environment variables (export per mcp/env.example.sh, then FULLY relaunch Cline/IDE):"
+  report_env_vars
+  info ""
+
+  info "MCP settings targets a merge would touch:"
+  local t
+  while IFS= read -r t; do
+    [[ -n "$t" ]] || continue
+    if [[ -f "$t" ]]; then
+      info "  [exists]  ${t}"
+    else
+      info "  [create]  ${t}"
+    fi
+  done < <(resolve_mcp_merge_targets)
+  info ""
+
+  if [[ "$pre_rc" -eq 0 ]]; then
+    info "Result: all required prerequisites present. Ready to install."
+  else
+    info "Result: one or more required prerequisites are MISSING (see hints above)."
+  fi
+  return "$pre_rc"
+}
+
 install_mcp_settings() {
   local dry_run="${1:-0}"
   local template
@@ -316,6 +470,18 @@ install_mcp_settings() {
   [[ -f "$template" ]] || die "MCP template missing: $template"
 
   info "MCP template: ${template}"
+
+  # Fail fast (with OS-aware install hints) before touching any settings file.
+  # A real merge requires python3 + npx and warns if Bun is missing; a dry-run
+  # only reports and never aborts on a missing tool.
+  if [[ "$dry_run" == "1" ]]; then
+    info "Pre-flight checks (dry-run, non-fatal):"
+    report_prerequisites || true
+    info ""
+  else
+    check_required_prerequisites
+  fi
+
   local targets=()
   local t
   while IFS= read -r t; do

@@ -81,6 +81,110 @@ resolve_global_skills_dir() {
   printf '%s' "${HOME}/.cline/skills"
 }
 
+# OS-aware install hints for a missing tool (prints commands for the detected OS).
+# Used by the MCP pre-flight gate (check_required_prerequisites) and the
+# read-only checker (report_prerequisites). macOS leads with Homebrew when
+# available, otherwise points at the official installer.
+install_hint() {
+  local tool="$1"
+  local os
+  os="$(detect_os 2>/dev/null || echo unsupported)"
+  case "$tool" in
+    node)
+      case "$os" in
+        macos)
+          if command -v brew >/dev/null 2>&1; then
+            printf '%s\n' "brew install node" \
+                         "# or the official installer: curl -fsSL https://nodejs.org/install.sh | bash"
+          else
+            printf '%s\n' "Install Node.js LTS: https://nodejs.org  (pkg, or via your package manager)"
+          fi
+          ;;
+        linux)
+          printf '%s\n' "sudo apt install nodejs npm   # Debian/Ubuntu; otherwise use your distro's package manager"
+          ;;
+        *)
+          printf '%s\n' "Install Node.js LTS: https://nodejs.org"
+          ;;
+      esac
+      ;;
+    python3)
+      case "$os" in
+        macos)
+          if command -v brew >/dev/null 2>&1; then
+            printf '%s\n' "brew install python" \
+                         "# or the system one: xcode-select --install   (provides /usr/bin/python3)"
+          else
+            printf '%s\n' "xcode-select --install   # provides python3" \
+                         "# or: brew install python"
+          fi
+          ;;
+        linux)
+          printf '%s\n' "sudo apt install python3   # Debian/Ubuntu"
+          ;;
+        *)
+          printf '%s\n' "Install python3 via your package manager"
+          ;;
+      esac
+      ;;
+    bun)
+      case "$os" in
+        macos)
+          if command -v brew >/dev/null 2>&1; then
+            printf '%s\n' "brew install oven-sh/bun/bun" \
+                         "# or the official installer: curl -fsSL https://bun.sh/install | bash"
+          else
+            printf '%s\n' "curl -fsSL https://bun.sh/install | bash" \
+                         "# or: brew install oven-sh/bun/bun"
+          fi
+          ;;
+        *)
+          printf '%s\n' "curl -fsSL https://bun.sh/install | bash"
+          ;;
+      esac
+      ;;
+    *)
+      printf '%s\n' "Install '$tool' via your package manager"
+      ;;
+  esac
+}
+
+# Hard gate: refuse to run a real MCP merge when required tools are missing,
+# printing OS-aware install hints. python3 (merge/validate) and npx/Node
+# (stdio servers) are required. Bun is only needed by local-precision-math, so a
+# missing Bun is a warning, not a failure. Safe to call from install-mcp.sh.
+check_required_prerequisites() {
+  local os
+  os="$(detect_os)"
+  if [[ "$os" == "unsupported" ]]; then
+    die "unsupported OS '$(uname -s)'; only macOS and Linux are supported"
+  fi
+
+  local -a missing=()
+  command -v python3 >/dev/null 2>&1 || missing+=("python3")
+  command -v npx     >/dev/null 2>&1 || missing+=("npx")
+
+  if (( ${#missing[@]} > 0 )); then
+    info "Missing required tools for the MCP merge: ${missing[*]}"
+    local m
+    for m in "${missing[@]}"; do
+      case "$m" in
+        python3) info "  python3:"; install_hint python3 ;;
+        npx)     info "  npx (Node.js):"; install_hint node ;;
+      esac
+      info ""
+    done
+    die "install the missing tools above, then re-run this command"
+  fi
+
+  if ! command -v bun >/dev/null 2>&1 && [[ ! -x "${HOME}/.bun/bin/bun" ]]; then
+    info "note: 'bun' is not on PATH. local-precision-math requires Bun (its entrypoint is 'bun', not node)."
+    install_hint bun
+    info "      Install it to enable that server, or leave local-precision-math disabled."
+    info ""
+  fi
+}
+
 usage_common() {
   local script_name="$1"
   local profile="$2"
