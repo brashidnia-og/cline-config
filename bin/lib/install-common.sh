@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Shared helpers for install-full.sh / install-lite.sh
-# Installs a profile's .clinerules + .cline/skills into Cline's global locations.
+# Installs a profile's .clinerules + .cline/skills into Cline's and OpenCode's global locations.
 
 set -euo pipefail
 
@@ -191,19 +191,26 @@ usage_common() {
   cat <<EOF
 Usage: ${script_name} [options]
 
-Install the ${profile}/ Cline profile into your user (global) Cline directories.
+Install the ${profile}/ profile into your user (global) Cline and OpenCode
+directories.
 
 Options:
-  -h, --help       Show this help
-  -n, --dry-run    Print destinations and actions without copying
-  --project DIR    Install into a project root instead of global locations
-                   (copies .clinerules/ and .cline/ into DIR)
-  --skip-mcp       Do not merge MCP servers into Cline settings (global only)
+  -h, --help          Show this help
+  -n, --dry-run       Print destinations and actions without copying
+  --project DIR       Install into a project root instead of global locations
+                       (Cline: copies .clinerules/ + .cline/ into DIR;
+                        OpenCode: generates AGENTS.md + .opencode/skills/)
+  --skip-mcp          Do not merge MCP servers into Cline settings (global only)
+  --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills
+  --force             Project mode only: replace an existing <project>/AGENTS.md
+                       (the existing file is backed up first)
 
 Global destinations (auto-detected):
-  Rules:   macOS  ~/Documents/Cline/Rules
-           Linux  \$XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
-  Skills:  ~/.cline/skills   (macOS and Linux)
+  Cline rules:     macOS  ~/Documents/Cline/Rules
+                    Linux  \$XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
+  Cline skills:    ~/.cline/skills   (macOS and Linux)
+  OpenCode rules:  ~/.config/opencode/AGENTS.md   (generated from the profile's .clinerules/)
+  OpenCode skills: ~/.config/opencode/skills
 
 MCP (global install only): merges mcp/cline_mcp_settings.template.json into
 Cline IDE/CLI settings. See mcp/SECURITY.md and mcp/env.example.sh.
@@ -238,6 +245,8 @@ install_profile() {
   local dry_run=0
   local project_dir=""
   local skip_mcp=0
+  local skip_opencode=0
+  local force=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -258,6 +267,14 @@ install_profile() {
         skip_mcp=1
         shift
         ;;
+      --skip-opencode)
+        skip_opencode=1
+        shift
+        ;;
+      --force)
+        force=1
+        shift
+        ;;
       *)
         die "unknown option: $1 (try --help)"
         ;;
@@ -274,6 +291,8 @@ install_profile() {
 
   # shellcheck source=mcp-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mcp-common.sh"
+  # shellcheck source=opencode-common.sh
+  source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/opencode-common.sh"
 
   if [[ -n "$project_dir" ]]; then
     [[ -d "$project_dir" ]] || die "project dir not found: $project_dir"
@@ -283,15 +302,28 @@ install_profile() {
       info "  [dry-run] sync ${rules_src}/ -> ${project_dir}/.clinerules/"
       info "  [dry-run] sync ${profile_root}/.cline/ -> ${project_dir}/.cline/"
       info "  [dry-run] note: MCP settings are global; run ./bin/install-mcp.sh separately"
+    fi
+    if [[ "$dry_run" != "1" ]]; then
+      sync_tree "$rules_src" "${project_dir}/.clinerules" 0
+      mkdir -p "${project_dir}/.cline"
+      sync_tree "${profile_root}/.cline" "${project_dir}/.cline" 0
+    fi
+    if [[ "$skip_opencode" -eq 0 ]]; then
+      install_opencode_project "$profile_root" "$project_dir" "$dry_run" "$force"
+    else
+      info "Skipping OpenCode install (--skip-opencode)."
+    fi
+    if [[ "$dry_run" == "1" ]]; then
       info "Dry run complete."
       return
     fi
-    sync_tree "$rules_src" "${project_dir}/.clinerules" 0
-    mkdir -p "${project_dir}/.cline"
-    sync_tree "${profile_root}/.cline" "${project_dir}/.cline" 0
     info "Done."
-    info "  ${project_dir}/.clinerules"
-    info "  ${project_dir}/.cline/skills"
+    info "  ${project_dir}/.clinerules     (Cline project rules)"
+    info "  ${project_dir}/.cline/skills    (Cline project skills)"
+    if [[ "$skip_opencode" -eq 0 ]]; then
+      info "  ${project_dir}/AGENTS.md       (OpenCode project rules, generated)"
+      info "  ${project_dir}/.opencode/skills (OpenCode project skills)"
+    fi
     info "Note: Cline MCP config is global (not project-local). Run ./bin/install-mcp.sh to merge MCP servers."
     return
   fi
@@ -312,6 +344,12 @@ install_profile() {
   sync_tree "$rules_src" "$rules_dest" "$dry_run"
   sync_tree "$skills_src" "$skills_dest" "$dry_run"
 
+  if [[ "$skip_opencode" -eq 0 ]]; then
+    install_opencode_global "$profile_root" "$dry_run"
+  else
+    info "Skipping OpenCode install (--skip-opencode)."
+  fi
+
   if [[ "$skip_mcp" -eq 0 ]]; then
     info "Merging MCP servers (use --skip-mcp to skip)..."
     install_mcp_settings "$dry_run"
@@ -324,5 +362,9 @@ install_profile() {
     return
   fi
 
-  info "Done. Restart Cline / reload the window if rules or skills do not appear."
+  if [[ "$skip_opencode" -eq 0 ]]; then
+    info "Done. Restart Cline / OpenCode (or reload the window) if rules or skills do not appear."
+  else
+    info "Done. Restart Cline / reload the window if rules or skills do not appear."
+  fi
 }
