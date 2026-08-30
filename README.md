@@ -1,47 +1,66 @@
-# Cline profiles: full + lite
+# Cline + OpenCode profiles: full + lite
 
-Local-model-oriented Cline rules and skills. Correctness, evidence, and self-review matter more than raw speed.
+Local-model-oriented rules and skills for **Cline** and **OpenCode**. Correctness, evidence, and self-review matter more than raw speed.
+
+Cline sources under `full/` and `lite/` are the source of truth. Install scripts copy them into Cline’s global dirs and **generate** OpenCode’s `AGENTS.md` by concatenating `.clinerules` (path-gated Cline rules become always-on sections with scope notes).
 
 | Profile | Use when | Approx always-on rules |
 |---------|----------|------------------------|
-| [`full/`](full/) | Multi-stack work: Kotlin/JVM, TS/JS, **React+Vite+Redux**, Rust, Python, Docker, AWS CLI/CDK, deep reviews | ~7–9k tokens (all rules enabled) |
+| [`full/`](full/) | Multi-stack work: Kotlin/JVM, TS/JS, **React+Vite+Redux**, Rust, Python, Docker, AWS CLI/CDK, deep reviews | Cline: ~7–9k tokens (path-gated). OpenCode: all rules always-on (~same size or larger) |
 | [`lite/`](lite/) | Lean sessions focused on **planning** and **debugging** | ~1.5–2k tokens; +~0.7–1k when a skill loads |
 
 ## Install
 
 Cline loads `.clinerules/` and `.cline/skills/` from a project root (nested folders under `.clinerules/` are loaded recursively). Global rules/skills apply across projects.
 
+OpenCode loads global rules from `~/.config/opencode/AGENTS.md` and skills from `~/.config/opencode/skills/*/SKILL.md`.
+
 ### Global (recommended after cloning)
 
-Scripts detect **macOS** or **Linux** and copy into Cline’s user directories, then merge MCP servers into Cline settings:
+Scripts detect **macOS** or **Linux** and install into **both** Cline and OpenCode user directories, then merge MCP servers into Cline settings:
 
 | | macOS | Linux |
 |-|-------|-------|
-| Rules | `~/Documents/Cline/Rules` | `$XDG Documents/Cline/Rules` (fallback `~/Cline/Rules` if Documents is missing) |
-| Skills | `~/.cline/skills` | `~/.cline/skills` |
-| MCP | Code / Cursor `…/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` and `~/.cline/data/settings/cline_mcp_settings.json` | same pattern under `~/.config/…` |
+| Cline Rules | `~/Documents/Cline/Rules` | `$XDG Documents/Cline/Rules` (fallback `~/Cline/Rules` if Documents is missing) |
+| Cline Skills | `~/.cline/skills` | `~/.cline/skills` |
+| OpenCode Rules | `~/.config/opencode/AGENTS.md` | `$XDG_CONFIG_HOME/opencode/AGENTS.md` (default `~/.config/opencode/AGENTS.md`) |
+| OpenCode Skills | `~/.config/opencode/skills` | same under `$XDG_CONFIG_HOME` |
+| MCP (Cline only) | Code / Cursor `…/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` and `~/.cline/data/settings/cline_mcp_settings.json` | same pattern under `~/.config/…` |
 
 ```bash
 ./bin/install-full.sh    # or ./bin/install-lite.sh
 ./bin/install-full.sh -n # dry-run
-./bin/install-full.sh --skip-mcp   # rules/skills only
-./bin/install-mcp.sh     # MCP merge only
+./bin/install-full.sh --skip-mcp        # rules/skills only (both tools)
+./bin/install-full.sh --skip-opencode   # Cline (+ MCP) only
+./bin/install-full.sh --skip-cline      # OpenCode only
+./bin/install-mcp.sh                    # MCP merge only
 ```
 
-### Project (one repo only)
+Requires `python3` to generate OpenCode `AGENTS.md`.
+
+After install: reload Cline / start a **new** OpenCode session so `AGENTS.md` and skills are picked up.
+
+### Project (Cline only)
 
 ```bash
 ./bin/install-full.sh --project /path/to/your-project
 ./bin/install-lite.sh --project /path/to/your-project
 ```
 
-Project install copies rules/skills only. MCP config is **global** — run `./bin/install-mcp.sh` separately.
+Project install copies Cline rules/skills only (no OpenCode project files). MCP config is **global** — run `./bin/install-mcp.sh` separately.
 
-Or manually:
+Or manually for Cline:
 ```bash
 cp -a full/.clinerules full/.cline /path/to/your-project/
 cp -a lite/.clinerules lite/.cline /path/to/your-project/
 ```
+
+### OpenCode generation notes
+
+- `AGENTS.md` is **generated at install time** from `.clinerules/**/*.md` (sorted). Do not hand-edit the installed file; re-run the install script.
+- Cline `paths:` frontmatter is stripped; a scope note is prepended so OpenCode still sees intended file globs.
+- Blatant “running through Cline” wording is rewritten to tool-agnostic phrasing in the generated file only.
+- **Token cost:** OpenCode has no path-conditional loading, so the `full` profile puts lang/cmd rules always-on. Prefer `lite` for small OpenCode contexts, or use `--skip-opencode` if you only want Cline.
 
 ### macOS notes
 

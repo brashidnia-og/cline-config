@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the lite/ Cline profile into global (or project) locations.
+# Install the lite/ profile into global Cline + OpenCode locations (or --project for Cline only).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
