@@ -21,6 +21,7 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 | Cline skills | `~/.cline/skills` | `~/.cline/skills` |
 | OpenCode rules | `~/.config/opencode/AGENTS.md` (generated) | same |
 | OpenCode skills | `~/.config/opencode/skills` | same |
+| OpenCode models | `~/.config/opencode/opencode.jsonc` (`provider.local-llm` block refreshed best-effort from `$LLM_URL/models`) | same |
 | Cline MCP | Code / Cursor `…/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` and `~/.cline/data/settings/cline_mcp_settings.json` | same pattern under `~/.config/…` |
 
 ```bash
@@ -29,6 +30,7 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 ./bin/install-full.sh --skip-mcp        # Cline + OpenCode rules/skills, no MCP merge
 ./bin/install-full.sh --skip-opencode   # Cline only (rules/skills + MCP)
 ./bin/install-mcp.sh     # MCP merge only
+./bin/install-opencode-config.sh        # refresh opencode.jsonc models from $LLM_URL/models (also run automatically, best-effort, by the two installers)
 ```
 
 ### Project (one repo only)
@@ -67,6 +69,27 @@ Behavior worth knowing:
 - Generating `AGENTS.md` needs `python3`. Without it the Cline install still completes and the OpenCode step is skipped with a hint (or pass `--skip-opencode` to silence it).
 - The global dir honors `XDG_CONFIG_HOME`; set `OPENCODE_CONFIG_DIR` to point the installer elsewhere.
 - MCP servers are **not** exported to OpenCode yet (OpenCode reads `opencode.json`); that is a planned follow-up. The Cline MCP merge is unaffected.
+- The `provider.local-llm` model list in `opencode.jsonc` is refreshed by `./bin/install-opencode-config.sh` (see [OpenCode model config](#opencode-model-config)); both installers run it best-effort.
+
+### OpenCode model config
+
+`./bin/install-opencode-config.sh` generates/refreshes the `provider.local-llm` block in `~/.config/opencode/opencode.jsonc` (honors `OPENCODE_CONFIG_DIR`, else `$XDG_CONFIG_HOME`, else `~/.config`) from the local OpenAI-compatible server:
+
+```bash
+./bin/install-opencode-config.sh            # uses $LLM_URL (default http://localhost:8000/v1)
+LLM_URL=http://10.0.0.5:8000/v1 ./bin/install-opencode-config.sh
+./bin/install-opencode-config.sh -n         # dry-run: query the server, print the resulting config, write nothing
+./bin/install-opencode-config.sh --url URL  # one-off override of $LLM_URL
+```
+
+Semantics:
+
+- Queries `$LLM_URL/models` and sets `options.baseURL` to `$LLM_URL`, writing one `"models"` entry per reported model id (sorted) — the config always mirrors the server.
+- **Merges, does not clobber:** every other setting in `opencode.jsonc` (permissions, agents, other providers, …) is preserved byte-for-byte. The managed block is delimited by `// cline-config:begin local-llm` / `// cline-config:end local-llm` comments; re-runs rewrite only that block.
+- A user-authored file (no markers) is backed up to `opencode.jsonc.bak-<timestamp>` before the first in-place merge; marker-bearing files are regenerated in place (no new backups).
+- Refuses to write while an editor has the file open (`opencode.jsonc.swp` present), and never writes a file that fails post-validation (invalid JSON, or a provider block that does not match the fetched model list).
+- Standalone runs **hard-fail** (non-zero exit, file untouched) when the server is down, unreachable, or reports zero models.
+- `install-full.sh` / `install-lite.sh` run this step **best-effort**: if the LLM server is unreachable they print a warning and the rest of the install still completes (`--skip-opencode` skips it).
 
 ### macOS notes
 

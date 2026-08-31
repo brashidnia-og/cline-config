@@ -6,6 +6,10 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# Default base URL of the local OpenAI-compatible model server, used to
+# refresh the OpenCode opencode.jsonc model list (override with $LLM_URL).
+LLM_URL_DEFAULT="http://localhost:8000/v1"
+
 die() {
   echo "error: $*" >&2
   exit 1
@@ -201,22 +205,57 @@ Options:
                        (Cline: copies .clinerules/ + .cline/ into DIR;
                         OpenCode: generates AGENTS.md + .opencode/skills/)
   --skip-mcp          Do not merge MCP servers into Cline settings (global only)
-  --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills
+  --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills, or
+                      refresh the opencode.jsonc model list
   --force             Project mode only: replace an existing <project>/AGENTS.md
-                       (the existing file is backed up first)
+                      (the existing file is backed up first)
 
 Global destinations (auto-detected):
   Cline rules:     macOS  ~/Documents/Cline/Rules
-                    Linux  \$XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
+                    Linux  $XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
   Cline skills:    ~/.cline/skills   (macOS and Linux)
   OpenCode rules:  ~/.config/opencode/AGENTS.md   (generated from the profile's .clinerules/)
   OpenCode skills: ~/.config/opencode/skills
+  OpenCode models: ~/.config/opencode/opencode.jsonc   (provider.local-llm block
+                    refreshed best-effort from the local LLM server's /models
+                    endpoint, default ${LLM_URL_DEFAULT}; override the server
+                    URL with the LLM_URL environment variable)
 
 MCP (global install only): merges mcp/cline_mcp_settings.template.json into
 Cline IDE/CLI settings. See mcp/SECURITY.md and mcp/env.example.sh.
 Or run: ./bin/install-mcp.sh
 
+OpenCode model config: refreshed best-effort via ./bin/install-opencode-config.sh,
+which merges the live model list into opencode.jsonc (other settings preserved).
+If the LLM server is unreachable the install warns and continues;
+--skip-opencode skips this step. Run the script directly for a hard-failing
+refresh.
+
 EOF
+}
+
+# Best-effort refresh of the global OpenCode model config (opencode.jsonc)
+# from the local LLM server. Runs install-opencode-config.sh as a subprocess
+# so the refresh stays a fully standalone tool; a failure there (LLM server
+# down, an editor has the file open, ...) is downgraded to a warning so the
+# rest of the install completes. Run the script directly for a hard-failing
+# refresh. (Only called when --skip-opencode was not passed.)
+refresh_opencode_config_best_effort() {
+  local dry_run="${1:-0}"
+  local oc_script
+  oc_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../install-opencode-config.sh"
+  if [[ ! -f "$oc_script" ]]; then
+    info "warning: ${oc_script} not found - skipping the opencode.jsonc model refresh."
+    return 0
+  fi
+  if [[ "$dry_run" == "1" ]]; then
+    bash "$oc_script" -n \
+      || info "warning: could not refresh the OpenCode model config (opencode.jsonc) - the rest of the install completed; run ./bin/install-opencode-config.sh later to retry."
+    return 0
+  fi
+  bash "$oc_script" \
+    || info "warning: could not refresh the OpenCode model config (opencode.jsonc) - the rest of the install completed; run ./bin/install-opencode-config.sh later to retry."
+  return 0
 }
 
 # Replace DEST with a full copy of SRC tree contents.
@@ -310,6 +349,7 @@ install_profile() {
     fi
     if [[ "$skip_opencode" -eq 0 ]]; then
       install_opencode_project "$profile_root" "$project_dir" "$dry_run" "$force"
+      refresh_opencode_config_best_effort "$dry_run"
     else
       info "Skipping OpenCode install (--skip-opencode)."
     fi
@@ -346,6 +386,7 @@ install_profile() {
 
   if [[ "$skip_opencode" -eq 0 ]]; then
     install_opencode_global "$profile_root" "$dry_run"
+    refresh_opencode_config_best_effort "$dry_run"
   else
     info "Skipping OpenCode install (--skip-opencode)."
   fi
