@@ -30,6 +30,8 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 ./bin/install-full.sh --skip-mcp        # Cline + OpenCode rules/skills, no MCP merge
 ./bin/install-full.sh --skip-opencode   # Cline only (rules/skills + MCP)
 ./bin/install-mcp.sh     # MCP merge only
+./bin/install-security-tools.sh -c   # report security scanners (read-only)
+./bin/install-security-tools.sh -n --install all   # dry-run scanner install plan
 ./bin/install-opencode-config.sh        # refresh opencode.jsonc models from $LLM_URL/models (also run automatically, best-effort, by the two installers)
 ```
 
@@ -140,6 +142,30 @@ Secrets / URLs: export into the **host process** environment using [`mcp/env.exa
 
 `local-precision-math` needs [Bun](https://bun.sh) (`npx` alone is not enough — the package’s entrypoint is `#!/usr/bin/env bun`). Without Bun you get `MCP error -32000: Connection closed`. `install-mcp.sh` materializes `PATH` to `$HOME/.bun/bin:$PATH` for that server.
 
+## Security auditing (`full/`)
+
+Five audit skills replace the old generic `security-review` skill:
+
+| Skill | Use for |
+|-------|---------|
+| `security-audit-core` | Methodology, `.audit/` workspace, ledger, scanner triage, severity, report |
+| `backend-security-audit` | JVM/Kotlin/Spring/Ktor, Node, Python APIs |
+| `frontend-security-audit` | React/Vite/Redux, CSP, wallets, SIWE, supply chain |
+| `smart-contract-security-audit` | CosmWasm / Provenance contracts |
+| `vulnerability-research` | CVE/advisory research and feedback into this repo |
+
+**Routing:** load `security-audit-core` first, then exactly one stack skill. `bugbot-review` stays for diff/PR review.
+
+**Scanners:** read-only forms are allowlisted in `full/.clinerules/cmd/18-cmd-security-scanners.md`. Install tools opt-in (not part of `install-full.sh`):
+
+```bash
+./bin/install-security-tools.sh -c              # what is missing
+./bin/install-security-tools.sh --install core  # gitleaks, osv-scanner, trivy, semgrep
+./bin/install-security-tools.sh --install rust  # cargo-audit, cargo-deny, cosmwasm-check, cargo-llvm-cov
+```
+
+**Search MCP prerequisite:** `vulnerability-research` prefers `local-searxng` or `external-brave-search` / `external-tavily` for fresh advisories. All search MCPs ship disabled — without one, audits fall back to lockfile + offline DBs and must say so in the report.
+
 ## Full layout
 
 ```text
@@ -152,7 +178,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 7 skills incl. frontend-engineering
+└── .cline/skills/    # 11 skills incl. security auditing + frontend-engineering
 ```
 
 OpenCode has no counterpart files in the repo — the installer generates `AGENTS.md` from `.clinerules/` at install time and copies `.cline/skills/` into OpenCode's skills directory (see [OpenCode](#opencode)).
@@ -161,6 +187,8 @@ Highlights in `full/`:
 - Expanded cmd whitelists (git fetch, jq/timeout, compose, AWS CLI/CDK read-only, Python, Vite, pnpm/yarn/bun, Make/Just, gh read-only)
 - **No Go, no Terraform**
 - React + Vite + Redux lang rules + `frontend-engineering` skill
+- Security auditing skills (core + backend/frontend/contract/research) + `18-cmd-security-scanners.md`
+- Optional CosmWasm lang rules (`45-lang-cosmwasm.md`, path-gated)
 - Finance MCP *routing* path-gated in `70-domain-finance-mcp.md` (servers not auto-installed)
 
 ## Lite layout

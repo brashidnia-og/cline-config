@@ -1,0 +1,7 @@
+# Local MCP / install artifacts (may contain secrets)
+tmp-*.json
+*.bak.*
+cline-frontier-local-model-setup.zip
+
+# Editor / local plans (optional workspace noise)
+.cursor/plans/
