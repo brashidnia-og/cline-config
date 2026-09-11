@@ -24,8 +24,9 @@ from the local OpenAI-compatible model server.
 
 The script queries \$LLM_URL/models (default: ${LLM_URL_DEFAULT}/models) and
 (re)generates the "provider.local-llm" block of ${OC_CONFIG_NAME} with that URL
-as baseURL and one entry per model id the server reports. All other settings
-in the file are preserved.
+as baseURL, headerTimeout: false (so long local prefills are not aborted), and
+one entry per model id the server reports. All other settings in the file are
+preserved.
 
 Options:
   -h, --help          Show this help

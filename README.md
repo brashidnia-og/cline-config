@@ -86,10 +86,11 @@ LLM_URL=http://10.0.0.5:8000/v1 ./bin/install-opencode-config.sh
 
 Semantics:
 
-- Queries `$LLM_URL/models` and sets `options.baseURL` to `$LLM_URL`, writing one `"models"` entry per reported model id (sorted) — the config always mirrors the server.
+- Queries `$LLM_URL/models` and sets `options.baseURL` to `$LLM_URL` plus `options.headerTimeout: false` (local prefills can exceed OpenCode’s default header wait), writing one `"models"` entry per reported model id (sorted) — the config always mirrors the server.
+- Each model is marked `"reasoning": true` and gets four OpenCode **variants** that set vLLM’s per-request `thinking_token_budget`: `2048`, `4096`, `8192`, `32768`. The base model (no variant) leaves the budget unset (unlimited). Select as `local-llm/<model>` or `local-llm/<model>#4096` (etc.).
 - **Merges, does not clobber:** every other setting in `opencode.jsonc` (permissions, agents, other providers, …) is preserved byte-for-byte. The managed block is delimited by `// cline-config:begin local-llm` / `// cline-config:end local-llm` comments; re-runs rewrite only that block.
 - A user-authored file (no markers) is backed up to `opencode.jsonc.bak-<timestamp>` before the first in-place merge; marker-bearing files are regenerated in place (no new backups).
-- Refuses to write while an editor has the file open (`opencode.jsonc.swp` present), and never writes a file that fails post-validation (invalid JSON, or a provider block that does not match the fetched model list).
+- Refuses to write while an editor has the file open (`opencode.jsonc.swp` present), and never writes a file that fails post-validation (invalid JSON, or a provider block that does not match the fetched model list / expected variants).
 - Standalone runs **hard-fail** (non-zero exit, file untouched) when the server is down, unreachable, or reports zero models.
 - `install-full.sh` / `install-lite.sh` run this step **best-effort**: if the LLM server is unreachable they print a warning and the rest of the install still completes (`--skip-opencode` skips it).
 
@@ -166,6 +167,19 @@ Five audit skills replace the old generic `security-review` skill:
 
 **Search MCP prerequisite:** `vulnerability-research` prefers `local-searxng` or `external-brave-search` / `external-tavily` for fresh advisories. All search MCPs ship disabled — without one, audits fall back to lockfile + offline DBs and must say so in the report.
 
+## Checkpointed analysis (`full/` and `lite/`)
+
+Two composable skills for repository-scale work that exceeds one useful model context (especially local models with bounded per-step reasoning):
+
+| Skill | Use for |
+|-------|---------|
+| `checkpointed-analysis` | Orchestrator: bounded investigate → semantic checkpoint → continue loops |
+| `persistent-analysis-store` | Schema for gitignored `.ai/analysis/` (`STATE.md` as index; component docs on disk) |
+
+**Routing:** load `checkpointed-analysis` (it pulls in `persistent-analysis-store`), then optionally one domain skill (`architecture-review`, `deep-debugging`, `change-planning`, or `security-audit-core` + one stack skill). Checkpoint after meaningful progress — not on a fixed reasoning-token interval. Do not stop after writing a checkpoint.
+
+Prompt shape: `Analyze X with checkpointing` or `Design a plan for Y using checkpointed-analysis`.
+
 ## Full layout
 
 ```text
@@ -178,7 +192,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 11 skills incl. security auditing + frontend-engineering
+└── .cline/skills/    # 13 skills incl. security auditing, checkpointing, frontend-engineering
 ```
 
 OpenCode has no counterpart files in the repo — the installer generates `AGENTS.md` from `.clinerules/` at install time and copies `.cline/skills/` into OpenCode's skills directory (see [OpenCode](#opencode)).
@@ -188,6 +202,7 @@ Highlights in `full/`:
 - **No Go, no Terraform**
 - React + Vite + Redux lang rules + `frontend-engineering` skill
 - Security auditing skills (core + backend/frontend/contract/research) + `18-cmd-security-scanners.md`
+- Checkpointed analysis + persistent analysis store (`.ai/analysis/`)
 - Optional CosmWasm lang rules (`45-lang-cosmwasm.md`, path-gated)
 - Finance MCP *routing* path-gated in `70-domain-finance-mcp.md` (servers not auto-installed)
 
@@ -201,10 +216,12 @@ lite/
 │   └── cmd/10-cmd-safety.md
 └── .cline/skills/
     ├── change-planning/
-    └── deep-debugging/
+    ├── checkpointed-analysis/
+    ├── deep-debugging/
+    └── persistent-analysis-store/
 ```
 
-Planning and debugging procedures live in **skills** so always-on context stays small.
+Planning, debugging, and long-running checkpointed investigation live in **skills** so always-on context stays small.
 
 ## Iteration advice
 

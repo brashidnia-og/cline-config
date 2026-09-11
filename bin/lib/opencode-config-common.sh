@@ -447,6 +447,11 @@ def detect_member_indent(text, start, end):
 
 # ---------- managed block rendering -----------------------------------------
 
+# Per-request vLLM thinking budgets exposed as OpenCode model variants.
+# Base model (no variant) leaves thinking_token_budget unset (unlimited).
+THINKING_TOKEN_BUDGETS = (2048, 4096, 8192, 32768)
+
+
 def render_block(ids, url, base_indent, trailing):
     """The marker-wrapped provider.local-llm block, at base_indent (the indent
     of the 'local-llm' key line). trailing adds a comma after the block when
@@ -454,20 +459,33 @@ def render_block(ids, url, base_indent, trailing):
     c1 = base_indent + "  "
     c2 = base_indent + "    "
     c3 = base_indent + "      "
+    c4 = base_indent + "        "
+    c5 = base_indent + "          "
     lines = [
         base_indent + BEGIN_MARK,
         base_indent + '"local-llm": {',
         c1 + '"name": "Local LLM",',
         c1 + '"npm": "@ai-sdk/openai-compatible",',
         c1 + '"options": {',
-        c2 + '"baseURL": ' + json.dumps(url),
+        c2 + '"baseURL": ' + json.dumps(url) + ",",
+        # Local vLLM prefills can exceed OpenCode's default header wait; disable
+        # so long TTFT does not abort mid-prefill and trigger retry loops.
+        c2 + '"headerTimeout": false',
         c1 + "},",
         c1 + '"models": {',
     ]
     for idx, mid in enumerate(ids):
         comma = "," if idx < len(ids) - 1 else ""
         lines.append(c2 + json.dumps(mid) + ": {")
-        lines.append(c3 + '"name": ' + json.dumps(mid))
+        lines.append(c3 + '"name": ' + json.dumps(mid) + ",")
+        lines.append(c3 + '"reasoning": true,')
+        lines.append(c3 + '"variants": {')
+        for bidx, budget in enumerate(THINKING_TOKEN_BUDGETS):
+            bcomma = "," if bidx < len(THINKING_TOKEN_BUDGETS) - 1 else ""
+            lines.append(c4 + json.dumps(str(budget)) + ": {")
+            lines.append(c5 + '"thinking_token_budget": ' + str(budget))
+            lines.append(c4 + "}" + bcomma)
+        lines.append(c3 + "}")
         lines.append(c2 + "}" + comma)
     lines.append(c1 + "}")
     lines.append(base_indent + "}" + ("," if trailing else ""))
@@ -675,8 +693,28 @@ def main():
     llm = prov.get(PROVIDER_ID) if isinstance(prov, dict) else None
     if not isinstance(llm, dict) or llm.get("options", {}).get("baseURL") != base_url:
         fail(5, "post-validation failed (provider.%s.baseURL mismatch) - original file left unchanged" % PROVIDER_ID)
-    if set(llm.get("models", {}).keys()) != set(ids):
+    if llm.get("options", {}).get("headerTimeout") is not False:
+        fail(5, "post-validation failed (provider.%s.options.headerTimeout must be false) - original file left unchanged" % PROVIDER_ID)
+    models = llm.get("models", {})
+    if set(models.keys()) != set(ids):
         fail(5, "post-validation failed (model list mismatch) - original file left unchanged")
+    expected_variants = {str(b): b for b in THINKING_TOKEN_BUDGETS}
+    for mid in ids:
+        entry = models.get(mid)
+        if not isinstance(entry, dict):
+            fail(5, "post-validation failed (model %s is not an object) - original file left unchanged" % mid)
+        if entry.get("thinking_token_budget") is not None:
+            fail(5, "post-validation failed (base model %s must not set thinking_token_budget) - original file left unchanged" % mid)
+        opts = entry.get("options")
+        if isinstance(opts, dict) and opts.get("thinking_token_budget") is not None:
+            fail(5, "post-validation failed (base model %s options must not set thinking_token_budget) - original file left unchanged" % mid)
+        variants = entry.get("variants")
+        if not isinstance(variants, dict) or set(variants.keys()) != set(expected_variants.keys()):
+            fail(5, "post-validation failed (model %s variants mismatch; expected %s) - original file left unchanged" % (mid, ", ".join(expected_variants.keys())))
+        for key, budget in expected_variants.items():
+            v = variants.get(key)
+            if not isinstance(v, dict) or v.get("thinking_token_budget") != budget:
+                fail(5, "post-validation failed (model %s variant %s thinking_token_budget mismatch) - original file left unchanged" % (mid, key))
 
     # Report / write.
     models_line = ", ".join(ids)
