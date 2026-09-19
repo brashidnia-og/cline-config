@@ -22,6 +22,13 @@ Safety/cmd rules > explicit user request > repository conventions > style prefer
 
 Do not silently change modes. Skip deep skills for trivial typos/renames/one-line fixes.
 
+## Skill execution (subagents)
+Skills run on the primary. Choose by capability (user "solo" / "no subagents" → Solo):
+1. **Delegated** (OpenCode/Cursor): `@agent`/Task for noisy search/logs/diffs; primary keeps ledgers, verdicts, gate. Children return short digests only. No parallel competing owners.
+2. **Research-assist** (Cline): read-only `use_subagents` for search/map only; primary owns procedure/edits.
+3. **Solo**: all steps on primary when helpers unavailable or the task is tiny.
+Follow each skill's **Subagent fan-out** section when present.
+
 ## Task contract (non-trivial)
 Establish: objective, acceptance criteria, current behavior, non-goals, constraints, unknowns. Inspect before guessing. Do not broaden scope opportunistically.
 

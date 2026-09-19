@@ -7,6 +7,16 @@ description: Perform a rigorous Bugbot-style review of Git diffs, pull requests,
 
 Review for high-confidence correctness/security/reliability defects. Do not edit unless the user explicitly asks to fix/apply/patch findings.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**:
+- Partition non-trivial files/hunks across one or more `@code-reviewer` children (independent slices in parallel is OK).
+- `@explore` — caller/callee and related-context maps when the diff alone is insufficient.
+- `@test-runner` / `@browser-tester` — only to confirm a suspected defect (short digests).
+- `@bash` — `git`/`diff` noise when the parent should stay on the coverage ledger.
+
+Primary owns the coverage ledger, false-positive bar, severity/confidence, and the final Scope/Summary/Findings report. Merge child findings; never treat a child severity as final without a reachable path. Under **Research-assist**, use `use_subagents` for search/map only. Under **Solo**, review entirely on the primary.
+
 ## 1. Establish scope
 
 Inspect:

@@ -7,6 +7,10 @@ description: Design, improve, or diagnose complex automated tests and validation
 
 Goal: build tests that meaningfully falsify incorrect implementations and remain deterministic, maintainable, and proportional to risk.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**: `@test-runner` / `@bash` for suite runs (failure digests); `@debugger` for flake causal sketches; `@browser-tester` for E2E evidence; `@db-reader` / `@explore` for schema and writers under test. Primary chooses test level, “don’t mock the SUT,” and the prove/unverified report. Under **Solo**/Research-assist, stay on the primary (Cline: search only).
+
 ## 1. Start from behavior/invariants
 
 Identify:

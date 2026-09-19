@@ -7,6 +7,10 @@ description: Plan, implement, or review database schema/data migrations, backfil
 
 Goal: change persisted state safely across application versions, data volumes, failures, and rollback.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**: `@db-reader` for current schema/paths; `@explore` for readers/writers; `@planner` for expand/migrate/contract sequence draft; `@test-runner` / `@bash` for disposable-env validation digests. Primary alone owns compatibility/rollback gates and must not run two competing migration designs in parallel. Under **Solo**/Research-assist, stay on the primary.
+
 ## 1. Establish current state
 
 Inspect:

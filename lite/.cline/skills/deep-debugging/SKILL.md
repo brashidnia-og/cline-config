@@ -7,6 +7,9 @@ description: Hypothesis-driven root-cause debugging for bugs, crashes, flaky tes
 
 Goal: fix the root cause, not only the symptom.
 
+## Subagent fan-out
+Follow `00-core-global` Skill execution. Under **Delegated**: `@debugger` for causal diagnosis (hypothesis digest); `@explore` for callers/paths; `@scout` for upstream known issues when useful. Lite has no shell/browser agents—run repro/tests on primary (or Research-assist search only on Cline). Primary keeps the hypothesis ledger and applies the single coherent fix (or `@general` if handing off an isolated edit). Under **Solo**, do all steps here.
+
 ## 1. Establish the failure
 Capture symptom, expected behavior, environment, and whether it is deterministic. Reproduce with the narrowest command/test when feasible.
 

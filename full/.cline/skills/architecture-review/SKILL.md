@@ -7,6 +7,17 @@ description: Design or critically review software/system architecture and implem
 
 Goal: produce an implementation-ready design grounded in the actual repository and requirements, not generic pattern matching.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**:
+- `@explore` — as-is map of relevant modules/flows.
+- `@db-reader` — schema/data-path inventory when persistence matters.
+- `@security-auditor` — trust-boundary skim (findings digest only).
+- `@scout` — framework/version capability limits.
+- `@planner` — phased implementation-plan draft.
+
+Primary alone chooses among alternatives, owns invariants/ownership decisions, and runs the plan gate/premortem. Under **Solo**/Research-assist, stay on the primary (Cline: search fan-out only).
+
 ## 1. Define the design problem
 
 Establish:

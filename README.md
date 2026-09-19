@@ -110,6 +110,8 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 
 **ELI5:** the primary agent is the foreman. A subagent gets a **fresh context**, does noisy search/review work there, and returns a **short report** so the main window does not fill up. Invoke with `@explore …` or ask the primary to use Task; parallel A/B/C is model-driven (multiple Task calls in one turn), not guaranteed.
 
+**Skills + subagents:** each skill stays one methodology playbook. `00-core-global` picks **Delegated** (named `@agent`/Task on OpenCode/Cursor), **Research-assist** (Cline `use_subagents` for search only), or **Solo** (fallback / user said “solo”). Skills with a **Subagent fan-out** section name which agents handle noisy phases; the primary keeps ledgers, verdicts, and the final gate. Say “solo” or “no subagents” to force Solo for that turn.
+
 **Track in OpenCode TUI:** child sessions; `<Leader>+Down` enter first child, `Left`/`Right` cycle, `Up` parent. Web UI is thinner.
 
 **Cline:** no named agent files are installed. Use skills plus Cline’s built-in read-only `use_subagents` research feature.

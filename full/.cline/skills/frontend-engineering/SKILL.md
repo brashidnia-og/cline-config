@@ -7,6 +7,10 @@ description: Plan, implement, or review React + Vite + Redux frontend features, 
 
 Goal: ship correct, accessible UI with clear state ownership, matching repository patterns—not generic React advice.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**: `@explore` for conventions/ownership map; implement on primary or `@general` for an isolated UI slice after the plan is set; `@browser-tester` + `@test-runner` for verify digests; `@code-reviewer` after edits. Primary owns store-shape/authz assumptions and VITE/secret callouts. Under **Solo**/Research-assist, stay on the primary.
+
 ## 1. Inspect first
 
 Before proposing structure, inspect:

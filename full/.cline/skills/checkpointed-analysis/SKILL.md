@@ -12,6 +12,15 @@ description: >-
 
 Goal: complete large investigations through many bounded cycles, writing durable knowledge to disk so the model never has to hold the whole repository model in context.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**:
+- Each cycle: `@explore` (or `@debugger` / `@scout` / `@db-reader` / `@security-auditor` when that matches the target) for the **one** bounded investigation target.
+- `@orchestrator` only to schedule **independent** read-only targets — not to implement and not to run competing domain skills in parallel.
+- Brief children with only the store slices they need; do **not** dump the whole `.ai/analysis/` tree into every child.
+
+**Primary alone** rewrites `STATE.md` and other store files (single writer). Do not let children checkpoint unless explicitly tasked `@general` with one named file path. Under **Research-assist**, `use_subagents` for search/map per cycle; primary still checkpoints. Under **Solo**, investigate and checkpoint on the primary.
+
 ## 1. Activate store first
 
 Immediately load `persistent-analysis-store` and use `.ai/analysis/` as durable memory for the rest of the task.

@@ -7,6 +7,10 @@ description: Deep security audit for backend APIs and services — JWT/session a
 
 Load `security-audit-core` first. This skill covers server-side trust boundaries.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution (and core’s anti-parallel stack rule). Under **Delegated**: `@bash` for scanner digests; `@explore` for authz/SSRF surfaces; `@db-reader` when tenancy lives in SQL; `@security-auditor` for **one** sequential framework/area slice. Do **not** run this skill in parallel with `frontend-security-audit` or `smart-contract-security-audit`. Primary owns reachability and severity under core.
+
 ## 1. Cross-cutting controls
 
 ### JWT and sessions

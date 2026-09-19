@@ -9,6 +9,10 @@ Load `security-audit-core` first.
 
 **No CosmWasm static analyzer exists.** Slither, Mythril, and Foundry are EVM-only. This audit is checklist + call-graph tracing + toolchain validation.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution (and core’s anti-parallel stack rule). Under **Delegated**: `@bash` for cargo/clippy/audit/deny digests; `@explore` for execute/SubMsg/reply graphs; `@scout` for provwasm docs/flags; `@test-runner` for mock/coverage gaps. Do **not** parallelize with other stack audit skills. Primary owns auth predicates, fund flows, migrate/schema, and severity under the deploy model.
+
 ## 1. CosmWasm taxonomy
 
 ### Authorization

@@ -11,6 +11,10 @@ description: >-
 
 Goal: keep durable, revisable repository knowledge on disk so many investigation cycles can accumulate an accurate model without reloading everything into context.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**, `@explore` may help map dirs into `COVERAGE.md` notes and `@docs-writer` may compress prose the primary then pastes—but **only the primary** creates/rewrites `STATE.md` and resolves contradictions. Never parallel writers of the same store files. Under **Solo**/Cline Research-assist, the primary owns all store I/O.
+
 ## 1. Workspace
 
 State lives in a gitignored `.ai/analysis/` in the **target repo** (never under installed skills dirs):

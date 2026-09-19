@@ -7,6 +7,17 @@ description: Run a structured security audit with trust-boundary modeling, cover
 
 Goal: find **reachable** security failures with evidence, not scanner noise or theoretical chains.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated**, fan out **helpers only**:
+- `@bash` — run scanners to files; return digests (`jq` summaries), never whole SARIF/JSON in context.
+- `@explore` — entry-point / trust-boundary maps for the current ledger area.
+- `@scout` — advisory/primary-source digests (sanitized).
+- `@security-auditor` — **one sequential area** findings digest that shares the parent ledger — not a second stack skill.
+- `@verifier` / `@test-runner` — confirm a suspected path when useful.
+
+**Still forbidden:** parallelize stack skills (`backend-` / `frontend-` / `smart-contract-security-audit`) or two severity owners. Primary owns scope, ledger sequencing, severity, confirmed-vs-lead, secrets redaction, and `report.md`. Under **Solo**/Research-assist, same rules with search-only assist on Cline.
+
 ## 1. Scope and assets
 
 Before findings, document in `<target-repo>/.audit/scope.md`:

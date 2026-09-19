@@ -7,6 +7,10 @@ description: Security audit for React + Vite + Redux frontends — XSS sinks, CS
 
 Load `security-audit-core` first. This skill covers browser trust boundaries and client bundles.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution (and core’s anti-parallel stack rule). Under **Delegated**: `@browser-tester` for flow evidence; `@bash` for `dist`/osv/npm digests; `@explore` for XSS sinks; `@security-auditor` for one sequential wallet/auth slice. Do **not** parallelize with other stack audit skills. Primary owns token-storage ranking and production CSP claims.
+
 ## 1. Token and session storage (RFC 10017)
 
 Ranked preference:

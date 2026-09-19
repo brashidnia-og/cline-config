@@ -34,6 +34,16 @@ Choose the least destructive mode that satisfies the request:
 
 Do not silently change modes.
 
+## Skill execution (subagents)
+
+Skills are methodology on the **primary** session. Pick an execution mode by capability (not by loading a second skill). If the user says "solo", "no subagents", or "do it all here", use Solo for that turn.
+
+1. **Delegated** (OpenCode/Cursor when named agents / Task are available): send noisy phases (broad search, large diffs, shell/test logs, browser runs, external-doc digests) to the matching `@agent` or Task. Keep ledgers, severity/root-cause/design choices, secret redaction, and the final gate on the primary. Children return short digests (paths, bullets, exit codes)—never raw SARIF, full logs, or whole diffs. Parallelize only independent **read-only** work; never two competing owners (two stack audits, two migration designs, two editors).
+2. **Research-assist** (Cline): no catalog agents. Use built-in read-only `use_subagents` for search/map fan-out only. Primary still owns the skill procedure, edits, and ledgers.
+3. **Solo** (fallback): run all skill steps on the primary when subagents are unavailable, fail, or the task is too small to justify handoff.
+
+When a loaded skill has a **Subagent fan-out** section, follow it under Delegated/Research-assist; otherwise stay Solo for that skill's steps.
+
 ## Decision procedure
 
 For non-trivial work use one sequence: **mode → inspect → task contract → act → verify → universal gate**.

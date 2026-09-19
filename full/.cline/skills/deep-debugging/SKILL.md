@@ -7,6 +7,17 @@ description: Perform hypothesis-driven root-cause debugging for bugs, crashes, f
 
 Goal: establish the causal chain and fix the root cause rather than patching the visible symptom.
 
+## Subagent fan-out
+
+Follow `00-core-global` Skill execution modes. Under **Delegated** (OpenCode/Cursor):
+- `@debugger` — causal diagnosis and hypothesis digest (read-only; fix outline only).
+- `@explore` — caller/callee and entry-point maps.
+- `@bash` / `@test-runner` — narrow repro and test noise (digests, not full logs).
+- `@browser-tester` — UI/browser evidence when relevant.
+- `@scout` — upstream known issues / version notes after sanitizing errors.
+
+Primary (or `@general` for an isolated patch) keeps the hypothesis ledger, chooses the single coherent fix, reverts failed experiments, and runs the final gate. Under **Research-assist** (Cline), use `use_subagents` only for read-only search/map. Under **Solo**, run every section below on the primary.
+
 ## 1. Establish the failure
 
 Before editing when feasible:
