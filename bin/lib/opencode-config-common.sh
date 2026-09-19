@@ -70,8 +70,16 @@ refresh_opencode_models() {
   # Exit codes: 0 ok/skipped, 2 endpoint unreachable/HTTP error,
   # 3 bad response/zero models, 4 file structure not mergeable,
   # 5 post-validation failed, 6 backup/write failed.
-  local out rc
-  out="$(python3 - "$target" "$url" "$dry_run" "$OC_TIMEOUT" 2>&1 <<'PY'
+  #
+  # Capture via a temp file instead of nesting the heredoc in $(): bash 3.2
+  # (macOS /bin/bash) misparses parentheses inside heredocs inside command
+  # substitutions as shell syntax.
+  local out rc out_file
+  out_file="$(mktemp)"
+  # Capture path in trap string — local out_file is unset when RETURN fires under set -u.
+  # shellcheck disable=SC2064
+  trap "rm -f '${out_file}'" RETURN
+  python3 - "$target" "$url" "$dry_run" "$OC_TIMEOUT" >"$out_file" 2>&1 <<'PY' && rc=0 || rc=$?
 import datetime
 import json
 import os
@@ -768,7 +776,7 @@ def main():
 
 main()
 PY
-)" && rc=0 || rc=$?
+  out="$(cat "$out_file")"
   if [[ "$rc" != "0" ]]; then
     if [[ "$strict" == "1" ]]; then
       die "opencode.jsonc refresh failed: ${out}"
