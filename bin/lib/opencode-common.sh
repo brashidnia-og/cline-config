@@ -12,7 +12,8 @@
 #   project: <project>/AGENTS.md           +  <project>/.opencode/skills/
 #
 # Requires REPO_ROOT, die, info, sync_tree, install_hint from
-# install-common.sh (sourced together by install_profile).
+# install-common.sh (sourced together by install_profile). Agents come from
+# agents-common.sh (sourced by install_profile before these helpers run).
 
 set -euo pipefail
 
@@ -264,9 +265,14 @@ install_opencode_global() {
   skills_dest="${oc_dir}/skills"
   skills_src="${profile_root}/.cline/skills"
 
+  local profile_name agents_dir
+  profile_name="$(basename "$profile_root")"
+  agents_dir="${oc_dir}/agents"
+
   info "OpenCode global destinations:"
   info "  AGENTS.md: ${agents_dest} (generated from .clinerules/)"
   info "  Skills:    ${skills_dest}"
+  info "  Agents:    ${agents_dir}"
 
   # Generating AGENTS.md needs python3. If it is missing we skip this step
   # (with a hint) so a Cline-only install still completes; a full install
@@ -296,6 +302,7 @@ install_opencode_global() {
       info "  [dry-run] create ${agents_dest}"
     fi
     info "  [dry-run] replace skills in ${skills_dest}/"
+    install_opencode_agents "$profile_name" "$agents_dir" 1
     return
   fi
 
@@ -313,12 +320,14 @@ install_opencode_global() {
   fi
   local tmp
   tmp="$(mktemp "${agents_dest}.XXXXXX")"
-  generate_agents_md "$profile_root" "$(basename "$profile_root")" "$tmp"
+  generate_agents_md "$profile_root" "$profile_name" "$tmp"
   mv "$tmp" "$agents_dest"
 
   sync_tree "$skills_src" "$skills_dest" 0
 
   warn_claude_compatible_collisions "$skills_src"
+
+  install_opencode_agents "$profile_name" "$agents_dir" 0
 
   info "OpenCode global install done."
 }
@@ -335,16 +344,19 @@ install_opencode_project() {
   local dry_run="${3:-0}"
   local force="${4:-0}"
 
-  local oc_dir agents_dest skills_dest skills_src global_skills
+  local oc_dir agents_dest skills_dest skills_src global_skills profile_name agents_dir
   oc_dir="$(resolve_opencode_global_dir)"
   agents_dest="${project_dir}/AGENTS.md"
   skills_dest="${project_dir}/.opencode/skills"
   skills_src="${profile_root}/.cline/skills"
   global_skills="${oc_dir}/skills"
+  profile_name="$(basename "$profile_root")"
+  agents_dir="${project_dir}/.opencode/agents"
 
   info "OpenCode project destinations:"
   info "  AGENTS.md: ${agents_dest}"
   info "  Skills:    ${skills_dest}"
+  info "  Agents:    ${agents_dir}"
 
   if ! command -v python3 >/dev/null 2>&1; then
     if [[ "$dry_run" == "1" ]]; then
@@ -370,6 +382,7 @@ install_opencode_project() {
       info "  [dry-run] create ${agents_dest}"
     fi
     info "  [dry-run] replace skills in ${skills_dest}/"
+    install_opencode_agents "$profile_name" "$agents_dir" 1
     return
   fi
 
@@ -418,6 +431,8 @@ install_opencode_project() {
   done
 
   warn_claude_compatible_collisions "$skills_src"
+
+  install_opencode_agents "$profile_name" "$agents_dir" 0
 
   info "OpenCode project install done."
 }

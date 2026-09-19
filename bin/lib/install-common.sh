@@ -196,17 +196,18 @@ usage_common() {
 Usage: ${script_name} [options]
 
 Install the ${profile}/ profile into your user (global) Cline and OpenCode
-directories.
+directories (and Cursor agent files).
 
 Options:
   -h, --help          Show this help
   -n, --dry-run       Print destinations and actions without copying
   --project DIR       Install into a project root instead of global locations
                        (Cline: copies .clinerules/ + .cline/ into DIR;
-                        OpenCode: generates AGENTS.md + .opencode/skills/)
+                        OpenCode: generates AGENTS.md + .opencode/skills/ + .opencode/agents/;
+                        Cursor: writes .cursor/agents/)
   --skip-mcp          Do not merge MCP servers into Cline settings (global only)
-  --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills, or
-                      refresh the opencode.jsonc model list
+  --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills + agents, or
+                      refresh the opencode.jsonc model list (Cursor agents still install)
   --force             Project mode only: replace an existing <project>/AGENTS.md
                       (the existing file is backed up first)
 
@@ -216,6 +217,8 @@ Global destinations (auto-detected):
   Cline skills:    ~/.cline/skills   (macOS and Linux)
   OpenCode rules:  ~/.config/opencode/AGENTS.md   (generated from the profile's .clinerules/)
   OpenCode skills: ~/.config/opencode/skills
+  OpenCode agents: ~/.config/opencode/agents   (from agents/catalog + agents/${profile}.list)
+  Cursor agents:   ~/.cursor/agents            (same catalog; Cursor frontmatter)
   OpenCode models: ~/.config/opencode/opencode.jsonc   (provider.local-llm block
                     refreshed best-effort from the local LLM server's /models
                     endpoint, default ${LLM_URL_DEFAULT}; override the server
@@ -330,6 +333,8 @@ install_profile() {
 
   # shellcheck source=mcp-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mcp-common.sh"
+  # shellcheck source=agents-common.sh
+  source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/agents-common.sh"
   # shellcheck source=opencode-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/opencode-common.sh"
 
@@ -353,6 +358,7 @@ install_profile() {
     else
       info "Skipping OpenCode install (--skip-opencode)."
     fi
+    install_cursor_agents "$profile" "${project_dir}/.cursor/agents" "$dry_run"
     if [[ "$dry_run" == "1" ]]; then
       info "Dry run complete."
       return
@@ -363,7 +369,9 @@ install_profile() {
     if [[ "$skip_opencode" -eq 0 ]]; then
       info "  ${project_dir}/AGENTS.md       (OpenCode project rules, generated)"
       info "  ${project_dir}/.opencode/skills (OpenCode project skills)"
+      info "  ${project_dir}/.opencode/agents (OpenCode project agents)"
     fi
+    info "  ${project_dir}/.cursor/agents  (Cursor project agents)"
     info "Note: Cline MCP config is global (not project-local). Run ./bin/install-mcp.sh to merge MCP servers."
     return
   fi
@@ -372,14 +380,16 @@ install_profile() {
   os="$(detect_os)"
   [[ "$os" != "unsupported" ]] || die "unsupported OS '$(uname -s)'; only macOS and Linux are supported"
 
-  local rules_dest skills_dest
+  local rules_dest skills_dest cursor_agents_dest
   rules_dest="$(resolve_global_rules_dir "$os")"
   skills_dest="$(resolve_global_skills_dir)"
+  cursor_agents_dest="$(resolve_cursor_global_agents_dir)"
 
   info "Detected OS: ${os}"
   info "Installing profile: ${profile}"
   info "  Rules:  ${rules_dest}"
   info "  Skills: ${skills_dest}"
+  info "  Cursor agents: ${cursor_agents_dest}"
 
   sync_tree "$rules_src" "$rules_dest" "$dry_run"
   sync_tree "$skills_src" "$skills_dest" "$dry_run"
@@ -390,6 +400,8 @@ install_profile() {
   else
     info "Skipping OpenCode install (--skip-opencode)."
   fi
+
+  install_cursor_agents "$profile" "$cursor_agents_dest" "$dry_run"
 
   if [[ "$skip_mcp" -eq 0 ]]; then
     info "Merging MCP servers (use --skip-mcp to skip)..."
@@ -404,8 +416,8 @@ install_profile() {
   fi
 
   if [[ "$skip_opencode" -eq 0 ]]; then
-    info "Done. Restart Cline / OpenCode (or reload the window) if rules or skills do not appear."
+    info "Done. Restart Cline / OpenCode / Cursor (or reload the window) if rules, skills, or agents do not appear."
   else
-    info "Done. Restart Cline / reload the window if rules or skills do not appear."
+    info "Done. Restart Cline / Cursor / reload the window if rules, skills, or agents do not appear."
   fi
 }
