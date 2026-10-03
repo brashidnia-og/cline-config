@@ -12,3 +12,5 @@ browser-tester
 scout
 orchestrator
 db-reader
+character-art-reviewer
+game-performance-reviewer

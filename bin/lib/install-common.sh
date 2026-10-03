@@ -195,8 +195,8 @@ usage_common() {
   cat <<EOF
 Usage: ${script_name} [options]
 
-Install the ${profile}/ profile into your user (global) Cline and OpenCode
-directories (and Cursor agent files).
+Install the ${profile}/ profile into your user (global) Cline, OpenCode,
+Cursor, Codex, and Hermes directories.
 
 Options:
   -h, --help          Show this help
@@ -207,7 +207,9 @@ Options:
                         Cursor: writes .cursor/agents/)
   --skip-mcp          Do not merge MCP servers into Cline settings (global only)
   --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills + agents, or
-                      refresh the opencode.jsonc model list (Cursor agents still install)
+                      refresh the opencode.jsonc model list (other tools still install)
+  --hermes-profile ID Also install game skills into an existing Hermes Bot/profile
+                      (global install only)
   --force             Project mode only: replace an existing <project>/AGENTS.md
                       (the existing file is backed up first)
 
@@ -219,6 +221,9 @@ Global destinations (auto-detected):
   OpenCode skills: ~/.config/opencode/skills
   OpenCode agents: ~/.config/opencode/agents   (from agents/catalog + agents/${profile}.list)
   Cursor agents:   ~/.cursor/agents            (same catalog; Cursor frontmatter)
+  Cursor skills:   ~/.cursor/skills            (full profile game skills)
+  Codex skills:    ~/.codex/skills             (full profile game skills)
+  Hermes skills:   ~/.hermes/skills/game-development (full profile game skills)
   OpenCode models: ~/.config/opencode/opencode.jsonc   (provider.local-llm block
                     refreshed best-effort from the local LLM server's /models
                     endpoint, default ${LLM_URL_DEFAULT}; override the server
@@ -289,6 +294,7 @@ install_profile() {
   local skip_mcp=0
   local skip_opencode=0
   local force=0
+  local hermes_profile=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -313,6 +319,11 @@ install_profile() {
         skip_opencode=1
         shift
         ;;
+      --hermes-profile)
+        [[ $# -ge 2 ]] || die "--hermes-profile requires an ID"
+        hermes_profile="$2"
+        shift 2
+        ;;
       --force)
         force=1
         shift
@@ -335,10 +346,13 @@ install_profile() {
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mcp-common.sh"
   # shellcheck source=agents-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/agents-common.sh"
+  # shellcheck source=game-skills-common.sh
+  source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/game-skills-common.sh"
   # shellcheck source=opencode-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/opencode-common.sh"
 
   if [[ -n "$project_dir" ]]; then
+    [[ -z "$hermes_profile" ]] || die "--hermes-profile requires a global install (omit --project)"
     [[ -d "$project_dir" ]] || die "project dir not found: $project_dir"
     project_dir="$(cd "$project_dir" && pwd)"
     info "Installing ${profile} into project: ${project_dir}"
@@ -359,6 +373,7 @@ install_profile() {
       info "Skipping OpenCode install (--skip-opencode)."
     fi
     install_cursor_agents "$profile" "${project_dir}/.cursor/agents" "$dry_run"
+    install_game_skills_project "$profile" "$project_dir" "$dry_run"
     if [[ "$dry_run" == "1" ]]; then
       info "Dry run complete."
       return
@@ -402,6 +417,7 @@ install_profile() {
   fi
 
   install_cursor_agents "$profile" "$cursor_agents_dest" "$dry_run"
+  install_game_skills_global "$profile" "$dry_run" "$hermes_profile"
 
   if [[ "$skip_mcp" -eq 0 ]]; then
     info "Merging MCP servers (use --skip-mcp to skip)..."
@@ -416,8 +432,8 @@ install_profile() {
   fi
 
   if [[ "$skip_opencode" -eq 0 ]]; then
-    info "Done. Restart Cline / OpenCode / Cursor (or reload the window) if rules, skills, or agents do not appear."
+    info "Done. Restart Cline / OpenCode / Cursor / Codex / Hermes (or reload) if rules, skills, or agents do not appear."
   else
-    info "Done. Restart Cline / Cursor / reload the window if rules, skills, or agents do not appear."
+    info "Done. Restart Cline / Cursor / Codex / Hermes (or reload) if rules, skills, or agents do not appear."
   fi
 }

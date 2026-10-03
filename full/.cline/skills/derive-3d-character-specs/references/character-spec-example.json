@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "source": {
+    "image": "art/concepts/roster.png",
+    "sha256": "replace-with-source-hash",
+    "size_px": [640, 406],
+    "usage_notes": "Record source and rights information supplied by the project"
+  },
+  "contract": {
+    "units": "meters",
+    "up": "+Y",
+    "forward": "-Z",
+    "ground_y": 0,
+    "parts": ["Body", "Face", "LeftArm", "RightArm", "LeftFoot", "RightFoot"],
+    "export_format": "glb",
+    "camera_context": "Describe the actual gameplay camera and expected on-screen size"
+  },
+  "characters": [
+    {
+      "id": "example_character",
+      "display_name": "Example Character",
+      "source_region": {"row": 1, "column": 1, "crop": "art/concepts/example_character.png"},
+      "observed": ["Describe visible silhouette", "Describe visible colors and parts"],
+      "interpretations": ["Describe chosen depth and unseen back"],
+      "construction": {
+        "body": "Primitive, extruded profile, modeled mesh, or sculpt recipe",
+        "separate_parts": ["List accessories that need distinct pivots"],
+        "materials": ["List palette and surface choices"],
+        "silhouette_checks": ["Describe the recognition cues at game camera distance"]
+      },
+      "anchors": {
+        "face": "Front position and scale or a rule for deriving them",
+        "arms": "Left and right pivot positions",
+        "feet": "Grounded pivot positions"
+      },
+      "uncertainties": ["List ambiguities and whether approval is required"],
+      "status": "spec_ready"
+    }
+  ]
+}

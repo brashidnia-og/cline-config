@@ -23,6 +23,9 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 | OpenCode skills | `~/.config/opencode/skills` | same |
 | OpenCode agents | `~/.config/opencode/agents` (from `agents/catalog` + profile list) | same |
 | Cursor agents | `~/.cursor/agents` (same catalog; Cursor frontmatter) | same |
+| Cursor game skills | `~/.cursor/skills` | same |
+| Codex game skills | `~/.codex/skills` | same |
+| Hermes game skills | `~/.hermes/skills/game-development` | same |
 | OpenCode models | `~/.config/opencode/opencode.jsonc` (`provider.local-llm` block refreshed best-effort from `$LLM_URL/models`) | same |
 | Cline MCP | Code / Cursor `…/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` and `~/.cline/data/settings/cline_mcp_settings.json` | same pattern under `~/.config/…` |
 
@@ -30,11 +33,12 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 ./bin/install-full.sh    # or ./bin/install-lite.sh
 ./bin/install-full.sh -n # dry-run (prints every destination/action, writes nothing)
 ./bin/install-full.sh --skip-mcp        # Cline + OpenCode rules/skills, no MCP merge
-./bin/install-full.sh --skip-opencode   # Cline only (rules/skills + MCP)
+./bin/install-full.sh --skip-opencode   # skip OpenCode; install Cline, Cursor, Codex, Hermes
 ./bin/install-mcp.sh     # MCP merge only
 ./bin/install-security-tools.sh -c   # report security scanners (read-only)
 ./bin/install-security-tools.sh -n --install all   # dry-run scanner install plan
 ./bin/install-opencode-config.sh        # refresh opencode.jsonc models from $LLM_URL/models (also run automatically, best-effort, by the two installers)
+./bin/install-full.sh --skip-mcp --hermes-profile grok  # also install into an existing Hermes Bot/profile named grok
 ```
 
 ### Project (one repo only)
@@ -45,7 +49,33 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/` in the project root; OpenCode gets a **generated** `AGENTS.md` + `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`. A pre-existing project `AGENTS.md` is **never overwritten** unless you pass `--force` (the existing file is backed up to `AGENTS.md.bak-<timestamp>` first). MCP config is **global** — run `./bin/install-mcp.sh` separately.
+Cline gets `.clinerules/` + `.cline/` in the project root; OpenCode gets a **generated** `AGENTS.md` + `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/` and the game skills under `.cursor/skills/`; Codex gets the game skills under `.codex/skills/`. A pre-existing project `AGENTS.md` is **never overwritten** unless you pass `--force` (the existing file is backed up to `AGENTS.md.bak-<timestamp>` first). MCP config is **global** — run `./bin/install-mcp.sh` separately.
+
+### Game development skills
+
+The full profile includes four reusable game-development skills:
+
+| Skill | Use it for |
+|-------|------------|
+| `game-reference-to-spec` | Turn observations from other games into original, evidence-backed and testable design decisions. |
+| `gameplay-code-quality` | Implement small, clear gameplay systems with explicit state ownership, useful reuse, and bounded per-frame work. |
+| `godot-game-development` | Build and validate Godot scenes, scripts, resources, input, physics, imports, and target builds using the project's version and conventions. |
+| `game-performance-profiling` | Measure a representative baseline, diagnose CPU/GPU/memory/loading bottlenecks, change one cause, and compare on target hardware. |
+
+The read-only `game-performance-reviewer` agent checks profiler evidence and before/after claims in Cursor and OpenCode. The performance skill covers Godot now and includes the shared measurement process for Unity; a Unity-specific development skill will be added when there is a Unity project to validate it against.
+
+### 2D image to 3D character workflow
+
+The full profile includes two linked skills:
+
+1. `derive-3d-character-specs` reads concept art and writes a project-owned `character_specs.json` plus a readable model plan. It separates visible evidence from invented depth/back details.
+2. `build-3d-game-characters` validates that handoff, builds editable assets, exports them, reviews consistent renders, integrates them into a playable engine sandbox, and tracks revisions and completion. It uses procedural modeling, Blender, or cleaned image-to-3D output according to the project and available tools.
+
+The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
+
+Global installation places all six game skills under Cursor, Codex, and Hermes skill directories in addition to the existing Cline/OpenCode profile sync. `--hermes-profile ID` also places them in an **existing** Hermes Bot/profile, so a Grok-backed Bot can load the same skills. Set the Bot's model in Hermes; the skills do not require a specific model. Project installs place them under `.cursor/skills/` and `.codex/skills/` and use the existing Cline/OpenCode project locations. Hermes profiles are installed from global mode.
+
+These extra destinations use a `.cline-config-managed` marker. Reinstalling full replaces only the managed skill directories; installing lite removes only those managed directories. An existing unmarked skill of the same name is left untouched with a note. OpenCode retains its existing profile-wide replacement behavior.
 
 Or manually (Cline only — the OpenCode `AGENTS.md` is generated by the installer):
 ```bash
@@ -116,7 +146,7 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 
 **Cline:** no named agent files are installed. Use skills plus Cline’s built-in read-only `use_subagents` research feature.
 
-**`full` agents (14):**
+**`full` agents (16):**
 
 | Agent | Role | Edits? |
 |-------|------|--------|
@@ -134,6 +164,8 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 | `scout` | External deps/docs | No |
 | `orchestrator` | Fan-out + synthesize | No |
 | `db-reader` | Schema/SQL/data paths | No |
+| `character-art-reviewer` | Visual QA of character specs and renders | No |
+| `game-performance-reviewer` | Review profiling evidence and performance claims | No |
 
 **`lite`:** `explore`, `planner`, `debugger`, `general`, `code-reviewer`, `orchestrator`, `scout`.
 
@@ -237,7 +269,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 13 skills incl. security auditing, checkpointing, frontend-engineering
+└── .cline/skills/    # 19 skills incl. game development, security auditing, checkpointing, frontend-engineering
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).

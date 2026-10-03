@@ -5,3 +5,5 @@ cline-frontier-local-model-setup.zip
 
 # Editor / local plans (optional workspace noise)
 .cursor/plans/
+__pycache__/
+*.pyc
