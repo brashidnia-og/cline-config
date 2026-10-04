@@ -66,18 +66,11 @@ install_game_skills_global() {
     [[ -d "$profile_dir" ]] || die "Hermes profile does not exist: ${profile_dir}"
   fi
   install_game_skills_to_dir "$profile" "${HOME}/.cursor/skills" "Cursor" "$dry_run"
-  install_game_skills_to_dir "$profile" "${HOME}/.codex/skills" "Codex" "$dry_run"
-  install_game_skills_to_dir "$profile" "${HOME}/.hermes/skills/game-development" "Hermes" "$dry_run"
-  if [[ -n "$hermes_profile" ]]; then
-    install_game_skills_to_dir "$profile" "${profile_dir}/skills/game-development" "Hermes profile ${hermes_profile}" "$dry_run"
-  fi
+  # Codex and Hermes receive all profile skills through multitool.py.
 }
 
 install_game_skills_project() {
   local profile="$1" project_dir="$2" dry_run="${3:-0}"
   install_game_skills_to_dir "$profile" "${project_dir}/.cursor/skills" "Cursor" "$dry_run"
-  install_game_skills_to_dir "$profile" "${project_dir}/.codex/skills" "Codex" "$dry_run"
-  # Hermes uses profile/global skill directories. Project mode deliberately
-  # stays inside the project; global Hermes installation uses the global path.
-  info "  Hermes skills: use a global install for ~/.hermes/skills/"
+  # Codex receives all profile skills under .agents/skills through multitool.py.
 }

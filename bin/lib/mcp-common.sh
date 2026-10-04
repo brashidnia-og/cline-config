@@ -453,6 +453,9 @@ run_mcp_check() {
       info "  [create]  ${t}"
     fi
   done < <(resolve_mcp_merge_targets)
+  info "  [Codex]  ${HOME}/.codex/config.toml"
+  info "  [Claude] ${HOME}/.claude.json"
+  info "  [Hermes] ${HOME}/.hermes/config.yaml"
   info ""
 
   if [[ "$pre_rc" -eq 0 ]]; then

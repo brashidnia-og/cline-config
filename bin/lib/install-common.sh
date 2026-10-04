@@ -196,41 +196,50 @@ usage_common() {
 Usage: ${script_name} [options]
 
 Install the ${profile}/ profile into your user (global) Cline, OpenCode,
-Cursor, Codex, and Hermes directories.
+Cursor, Codex, Claude Code, and Hermes directories.
 
 Options:
   -h, --help          Show this help
   -n, --dry-run       Print destinations and actions without copying
-  --project DIR       Install into a project root instead of global locations
+  --project DIR       Install project-scoped rules, skills, agents and Codex/Claude MCP
                        (Cline: copies .clinerules/ + .cline/ into DIR;
                         OpenCode: generates AGENTS.md + .opencode/skills/ + .opencode/agents/;
-                        Cursor: writes .cursor/agents/)
-  --skip-mcp          Do not merge MCP servers into Cline settings (global only)
+                        Cursor: writes .cursor/agents/;
+                        Codex: writes AGENTS.md + .agents/skills + .codex/agents;
+                        Claude: writes CLAUDE.md + .claude/rules, skills, agents;
+                        Hermes: reads AGENTS.md and installs profile skills)
+  --skip-mcp          Do not merge MCP servers into any tool settings
   --skip-opencode     Do not generate/install OpenCode AGENTS.md + skills + agents, or
                       refresh the opencode.jsonc model list (other tools still install)
-  --hermes-profile ID Also install game skills into an existing Hermes Bot/profile
-                      (global install only)
-  --force             Project mode only: replace an existing <project>/AGENTS.md
-                      (the existing file is backed up first)
+  --skip-codex        Skip Codex rules, skills, agents, and MCP
+  --skip-claude       Skip Claude Code rules, skills, agents, and MCP
+  --skip-hermes       Skip Hermes skills, role guide, and MCP
+  --hermes-profile ID Install Hermes skills/MCP into an existing profile
+  --force             Project mode only: replace existing project AGENTS.md / CLAUDE.md
+                      (existing files are backed up first)
 
 Global destinations (auto-detected):
   Cline rules:     macOS  ~/Documents/Cline/Rules
-                    Linux  $XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
+                    Linux  \$XDG Documents/Cline/Rules  (or ~/Cline/Rules if Documents is absent)
   Cline skills:    ~/.cline/skills   (macOS and Linux)
   OpenCode rules:  ~/.config/opencode/AGENTS.md   (generated from the profile's .clinerules/)
   OpenCode skills: ~/.config/opencode/skills
   OpenCode agents: ~/.config/opencode/agents   (from agents/catalog + agents/${profile}.list)
   Cursor agents:   ~/.cursor/agents            (same catalog; Cursor frontmatter)
   Cursor skills:   ~/.cursor/skills            (full profile game skills)
-  Codex skills:    ~/.codex/skills             (full profile game skills)
-  Hermes skills:   ~/.hermes/skills/game-development (full profile game skills)
+  Codex skills:    ~/.agents/skills            (all profile skills)
+  Codex agents:    ~/.codex/agents            (profile agent catalog)
+  Claude rules:    ~/.claude/CLAUDE.md + ~/.claude/rules
+  Claude skills:   ~/.claude/skills            (all profile skills)
+  Claude agents:   ~/.claude/agents            (profile agent catalog)
+  Hermes skills:   ~/.hermes/skills/cline-config (all profile skills)
   OpenCode models: ~/.config/opencode/opencode.jsonc   (provider.local-llm block
                     refreshed best-effort from the local LLM server's /models
                     endpoint, default ${LLM_URL_DEFAULT}; override the server
                     URL with the LLM_URL environment variable)
 
-MCP (global install only): merges mcp/cline_mcp_settings.template.json into
-Cline IDE/CLI settings. See mcp/SECURITY.md and mcp/env.example.sh.
+MCP: merges mcp/cline_mcp_settings.template.json into Cline, Codex,
+Claude Code, and Hermes settings. See mcp/SECURITY.md and mcp/env.example.sh.
 Or run: ./bin/install-mcp.sh
 
 OpenCode model config: refreshed best-effort via ./bin/install-opencode-config.sh,
@@ -295,6 +304,7 @@ install_profile() {
   local skip_opencode=0
   local force=0
   local hermes_profile=""
+  local skip_codex=0 skip_claude=0 skip_hermes=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -319,6 +329,9 @@ install_profile() {
         skip_opencode=1
         shift
         ;;
+      --skip-codex) skip_codex=1; shift ;;
+      --skip-claude) skip_claude=1; shift ;;
+      --skip-hermes) skip_hermes=1; shift ;;
       --hermes-profile)
         [[ $# -ge 2 ]] || die "--hermes-profile requires an ID"
         hermes_profile="$2"
@@ -351,6 +364,15 @@ install_profile() {
   # shellcheck source=opencode-common.sh
   source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/opencode-common.sh"
 
+  local -a multitool_args=(--profile "$profile")
+  [[ "$dry_run" == "1" ]] && multitool_args+=(--dry-run)
+  [[ "$force" == "1" ]] && multitool_args+=(--force)
+  [[ "$skip_codex" == "1" ]] && multitool_args+=(--skip-codex)
+  [[ "$skip_claude" == "1" ]] && multitool_args+=(--skip-claude)
+  [[ "$skip_hermes" == "1" ]] && multitool_args+=(--skip-hermes)
+  [[ -n "$hermes_profile" ]] && multitool_args+=(--hermes-profile "$hermes_profile")
+  local multitool_script="${REPO_ROOT}/bin/lib/multitool.py"
+
   if [[ -n "$project_dir" ]]; then
     [[ -z "$hermes_profile" ]] || die "--hermes-profile requires a global install (omit --project)"
     [[ -d "$project_dir" ]] || die "project dir not found: $project_dir"
@@ -374,6 +396,10 @@ install_profile() {
     fi
     install_cursor_agents "$profile" "${project_dir}/.cursor/agents" "$dry_run"
     install_game_skills_project "$profile" "$project_dir" "$dry_run"
+    python3 "$multitool_script" install "${multitool_args[@]}" --project "$project_dir"
+    if [[ "$skip_mcp" -eq 0 ]]; then
+      python3 "$multitool_script" mcp "${multitool_args[@]}" --project "$project_dir"
+    fi
     if [[ "$dry_run" == "1" ]]; then
       info "Dry run complete."
       return
@@ -418,10 +444,18 @@ install_profile() {
 
   install_cursor_agents "$profile" "$cursor_agents_dest" "$dry_run"
   install_game_skills_global "$profile" "$dry_run" "$hermes_profile"
+  python3 "$multitool_script" install "${multitool_args[@]}"
 
   if [[ "$skip_mcp" -eq 0 ]]; then
     info "Merging MCP servers (use --skip-mcp to skip)..."
     install_mcp_settings "$dry_run"
+    local -a multitool_mcp=(--profile "$profile")
+    [[ "$dry_run" == "1" ]] && multitool_mcp+=(--dry-run)
+    [[ "$skip_codex" == "1" ]] && multitool_mcp+=(--skip-codex)
+    [[ "$skip_claude" == "1" ]] && multitool_mcp+=(--skip-claude)
+    [[ "$skip_hermes" == "1" ]] && multitool_mcp+=(--skip-hermes)
+    [[ -n "$hermes_profile" ]] && multitool_mcp+=(--hermes-profile "$hermes_profile")
+    python3 "$multitool_script" mcp "${multitool_mcp[@]}"
   else
     info "Skipping MCP merge (--skip-mcp)."
   fi

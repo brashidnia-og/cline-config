@@ -1,6 +1,6 @@
 # Cline profiles: full + lite
 
-Local-model-oriented rules and skills for **Cline** and **OpenCode**. Correctness, evidence, and self-review matter more than raw speed. Each profile feeds both tools: Cline gets `.clinerules/` + `.cline/skills/`, OpenCode gets a **generated** `AGENTS.md` + the same skills.
+Shared engineering rules, skills, agents, and MCP configuration for **Cline, OpenCode, Cursor, Codex, Claude Code, and Hermes**. The `full` and `lite` profiles remain the source of truth; installers render each tool's native format.
 
 | Profile | Use when | Approx always-on rules |
 |---------|----------|------------------------|
@@ -13,7 +13,7 @@ Cline loads `.clinerules/` and `.cline/skills/` from a project root (nested fold
 
 ### Global (recommended after cloning)
 
-Scripts detect **macOS** or **Linux** and install into both tools' user directories (then merge MCP servers into Cline settings):
+Scripts detect **macOS** or **Linux** and install into the tools' user directories:
 
 | | macOS | Linux |
 |-|-------|-------|
@@ -24,21 +24,23 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 | OpenCode agents | `~/.config/opencode/agents` (from `agents/catalog` + profile list) | same |
 | Cursor agents | `~/.cursor/agents` (same catalog; Cursor frontmatter) | same |
 | Cursor game skills | `~/.cursor/skills` | same |
-| Codex game skills | `~/.codex/skills` | same |
-| Hermes game skills | `~/.hermes/skills/game-development` | same |
+| Codex rules, skills, agents | `~/.codex/AGENTS.md`, `~/.agents/skills`, `~/.codex/agents` | same |
+| Claude Code rules, skills, agents | `~/.claude/CLAUDE.md`, `~/.claude/rules`, `~/.claude/skills`, `~/.claude/agents` | same |
+| Hermes skills, core rules, delegation guide | `~/.hermes/skills/cline-config`, `~/.hermes/skills/cline-config-core`, `~/.hermes/skills/cline-config-delegation` | same |
 | OpenCode models | `~/.config/opencode/opencode.jsonc` (`provider.local-llm` block refreshed best-effort from `$LLM_URL/models`) | same |
-| Cline MCP | Code / Cursor `…/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` and `~/.cline/data/settings/cline_mcp_settings.json` | same pattern under `~/.config/…` |
+| MCP | Cline settings; Codex `~/.codex/config.toml`; Claude `~/.claude.json`; Hermes `~/.hermes/config.yaml` | same |
 
 ```bash
 ./bin/install-full.sh    # or ./bin/install-lite.sh
 ./bin/install-full.sh -n # dry-run (prints every destination/action, writes nothing)
-./bin/install-full.sh --skip-mcp        # Cline + OpenCode rules/skills, no MCP merge
-./bin/install-full.sh --skip-opencode   # skip OpenCode; install Cline, Cursor, Codex, Hermes
+./bin/install-full.sh --skip-mcp        # rules/skills/agents only
+./bin/install-full.sh --skip-opencode   # skip OpenCode; install the other tools
+./bin/install-full.sh --skip-codex --skip-claude --skip-hermes  # optional tool filters
 ./bin/install-mcp.sh     # MCP merge only
 ./bin/install-security-tools.sh -c   # report security scanners (read-only)
 ./bin/install-security-tools.sh -n --install all   # dry-run scanner install plan
 ./bin/install-opencode-config.sh        # refresh opencode.jsonc models from $LLM_URL/models (also run automatically, best-effort, by the two installers)
-./bin/install-full.sh --skip-mcp --hermes-profile grok  # also install into an existing Hermes Bot/profile named grok
+./bin/install-full.sh --skip-mcp --hermes-profile grok  # install Hermes content into existing profile grok
 ```
 
 ### Project (one repo only)
@@ -49,7 +51,15 @@ Scripts detect **macOS** or **Linux** and install into both tools' user director
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/` in the project root; OpenCode gets a **generated** `AGENTS.md` + `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/` and the game skills under `.cursor/skills/`; Codex gets the game skills under `.codex/skills/`. A pre-existing project `AGENTS.md` is **never overwritten** unless you pass `--force` (the existing file is backed up to `AGENTS.md.bak-<timestamp>` first). MCP config is **global** — run `./bin/install-mcp.sh` separately.
+Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/` and game skills. Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
+
+### Codex, Claude Code, and Hermes
+
+- All skills from the selected profile, including supporting files, install into each tool's discovery path. Managed skill directories carry `.cline-config-managed`; personal same-name skills are left alone. Switching profiles removes stale managed skills.
+- The agent catalog renders as Codex TOML and Claude Code Markdown subagents. Hermes gets on-demand `cline-config-core` rules and uses `delegate_task` with `cline-config-delegation` for specialist role instructions; Hermes profiles are separate persistent assistants, not named task roles. [Codex agents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Claude agents](https://code.claude.com/docs/en/sub-agents), [Hermes delegation](https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation).
+- MCP entries are translated from the Cline template. Codex and Hermes retain disabled servers as disabled entries. Claude Code receives the three enabled local servers; add optional external servers explicitly when needed, since Claude has no portable disabled-server entry. Existing same-name servers are preserved. Hermes `config.yaml` is backed up before merge; install PyYAML (`python3 -m pip install pyyaml`) for this merge, or pass `--skip-hermes`. The installer never changes the selected model, provider, or credentials.
+- The script does not sign in to Hermes. Keep the existing model selection, or run `hermes model` and select **ChatGPT or Codex Subscription** for Codex OAuth, or **Custom endpoint** and enter the OpenAI-compatible `/v1` URL and model name for vLLM or a router. The installed content is provider independent. Hermes currently documents Claude OAuth only for Claude Max with purchased extra usage credits; it does not consume the included Max allowance, and Claude Pro is not supported through that OAuth path. [Hermes provider setup](https://hermes-agent.nousresearch.com/docs/integrations/providers).
+- OpenCode also scans `.claude/skills` and `.agents/skills`; its own installed skills take precedence in current OpenCode V2. If a skill loads incorrectly, inspect all three locations and your installed OpenCode version. [OpenCode skill precedence](https://opencode.ai/v2/docs/skills).
 
 ### Game development skills
 
@@ -73,9 +83,9 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Global installation places all six game skills under Cursor, Codex, and Hermes skill directories in addition to the existing Cline/OpenCode profile sync. `--hermes-profile ID` also places them in an **existing** Hermes Bot/profile, so a Grok-backed Bot can load the same skills. Set the Bot's model in Hermes; the skills do not require a specific model. Project installs place them under `.cursor/skills/` and `.codex/skills/` and use the existing Cline/OpenCode project locations. Hermes profiles are installed from global mode.
+Cursor receives the six game skills. Codex, Claude Code, and Hermes receive all selected profile skills, including these six. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
-These extra destinations use a `.cline-config-managed` marker. Reinstalling full replaces only the managed skill directories; installing lite removes only those managed directories. An existing unmarked skill of the same name is left untouched with a note. OpenCode retains its existing profile-wide replacement behavior.
+Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. OpenCode retains its existing profile-wide replacement behavior.
 
 Or manually (Cline only — the OpenCode `AGENTS.md` is generated by the installer):
 ```bash
