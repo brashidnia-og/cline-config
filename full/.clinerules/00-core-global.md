@@ -44,6 +44,8 @@ Skills are methodology on the **primary** session. Pick an execution mode by cap
 
 When a loaded skill has a **Subagent fan-out** section, follow it under Delegated/Research-assist; otherwise stay Solo for that skill's steps.
 
+When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build tools) instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with `set -o pipefail`, and report its exit status and log path.
+
 ## Decision procedure
 
 For non-trivial work use one sequence: **mode → inspect → task contract → act → verify → universal gate**.

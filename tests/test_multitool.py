@@ -30,14 +30,18 @@ class MultitoolInstallTests(unittest.TestCase):
         personal.mkdir(parents=True)
         (personal / "SKILL.md").write_text("private\n")
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(19, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(21, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
+        self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertEqual(16, len(list((self.home / ".codex/agents").glob("*.toml"))))
         self.run_installer("install", "--profile", "lite")
-        self.assertEqual(4, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(6, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
+        self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertEqual(7, len(list((self.home / ".claude/agents").glob("*.md"))))
         self.assertEqual("private\n", (personal / "SKILL.md").read_text())
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(19, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
+        self.assertEqual(21, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
 
     def test_project_rules_force_and_dry_run(self):
         agents = self.project / "AGENTS.md"

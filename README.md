@@ -23,7 +23,7 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 | OpenCode skills | `~/.config/opencode/skills` | same |
 | OpenCode agents | `~/.config/opencode/agents` (from `agents/catalog` + profile list) | same |
 | Cursor agents | `~/.cursor/agents` (same catalog; Cursor frontmatter) | same |
-| Cursor game skills | `~/.cursor/skills` | same |
+| Cursor skills | `~/.cursor/skills` (game skills in full; CLI sub-agent logging in both profiles) | same |
 | Codex rules, skills, agents | `~/.codex/AGENTS.md`, `~/.agents/skills`, `~/.codex/agents` | same |
 | Claude Code rules, skills, agents | `~/.claude/CLAUDE.md`, `~/.claude/rules`, `~/.claude/skills`, `~/.claude/agents` | same |
 | Hermes skills, core rules, delegation guide | `~/.hermes/skills/cline-config`, `~/.hermes/skills/cline-config-core`, `~/.hermes/skills/cline-config-delegation` | same |
@@ -51,11 +51,12 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/` and game skills. Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
+Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the `cli-subagent-progress-logging` skill (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
 
 ### Codex, Claude Code, and Hermes
 
 - All skills from the selected profile, including supporting files, install into each tool's discovery path. Managed skill directories carry `.cline-config-managed`; personal same-name skills are left alone. Switching profiles removes stale managed skills.
+- The generated core delegation guidance (`AGENTS.md` / `CLAUDE.md` / Hermes core skill) points CLI child launches (`hermes chat`, test/build runners) at the `cli-subagent-progress-logging` skill: dual-output `tee` logging with `set -o pipefail` and an outcome + log-path report.
 - The agent catalog renders as Codex TOML and Claude Code Markdown subagents. Hermes gets on-demand `cline-config-core` rules and uses `delegate_task` with `cline-config-delegation` for specialist role instructions; Hermes profiles are separate persistent assistants, not named task roles. [Codex agents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Claude agents](https://code.claude.com/docs/en/sub-agents), [Hermes delegation](https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation).
 - MCP entries are translated from the Cline template. Codex and Hermes retain disabled servers as disabled entries. Claude Code receives the three enabled local servers; add optional external servers explicitly when needed, since Claude has no portable disabled-server entry. Existing same-name servers are preserved. Hermes `config.yaml` is backed up before merge; install PyYAML (`python3 -m pip install pyyaml`) for this merge, or pass `--skip-hermes`. The installer never changes the selected model, provider, or credentials.
 - The script does not sign in to Hermes. Keep the existing model selection, or run `hermes model` and select **ChatGPT or Codex Subscription** for Codex OAuth, or **Custom endpoint** and enter the OpenAI-compatible `/v1` URL and model name for vLLM or a router. The installed content is provider independent. Hermes currently documents Claude OAuth only for Claude Max with purchased extra usage credits; it does not consume the included Max allowance, and Claude Pro is not supported through that OAuth path. [Hermes provider setup](https://hermes-agent.nousresearch.com/docs/integrations/providers).
@@ -83,7 +84,7 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills. Codex, Claude Code, and Hermes receive all selected profile skills, including these six. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills plus the `cli-subagent-progress-logging` skill (both profiles). Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
 Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. OpenCode retains its existing profile-wide replacement behavior.
 
@@ -150,7 +151,7 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 
 **ELI5:** the primary agent is the foreman. A subagent gets a **fresh context**, does noisy search/review work there, and returns a **short report** so the main window does not fill up. Invoke with `@explore …` or ask the primary to use Task; parallel A/B/C is model-driven (multiple Task calls in one turn), not guaranteed.
 
-**Skills + subagents:** each skill stays one methodology playbook. `00-core-global` picks **Delegated** (named `@agent`/Task on OpenCode/Cursor), **Research-assist** (Cline `use_subagents` for search only), or **Solo** (fallback / user said “solo”). Skills with a **Subagent fan-out** section name which agents handle noisy phases; the primary keeps ledgers, verdicts, and the final gate. Say “solo” or “no subagents” to force Solo for that turn.
+**Skills + subagents:** each skill stays one methodology playbook. `00-core-global` picks **Delegated** (named `@agent`/Task on OpenCode/Cursor), **Research-assist** (Cline `use_subagents` for search only), or **Solo** (fallback / user said “solo”). Skills with a **Subagent fan-out** section name which agents handle noisy phases; the primary keeps ledgers, verdicts, and the final gate. Say “solo” or “no subagents” to force Solo for that turn. Sub-agents launched as CLI children (e.g. `hermes chat`, test/build runners) follow the `cli-subagent-progress-logging` skill instead — native sub-agent tools keep their own progress/result mechanisms.
 
 **Track in OpenCode TUI:** child sessions; `<Leader>+Down` enter first child, `Left`/`Right` cycle, `Up` parent. Web UI is thinner.
 
@@ -267,6 +268,12 @@ Two composable skills for repository-scale work that exceeds one useful model co
 
 Prompt shape: `Analyze X with checkpointing` or `Design a plan for Y using checkpointed-analysis`.
 
+## Sub-agent model routing (`full/` and `lite/`)
+
+`subagent-model-routing` is lead-only guidance for a strong main-thread model working with more limited workers (local vLLM/llama.cpp/Ollama models, small or quantized models). It covers what the lead keeps versus delegates, picking a worker from the models you say are active, concurrency and single-writer state, reasoning/answer budgets with a truncation probe, a fixed worker brief and report schema, stop rules, and lead verification. It never goes into worker prompts.
+
+Prompt shape: `Active models: lead = <hosted model>; workers = <local-a>, <local-b> (200k ctx, 8k reasoning). Use subagent-model-routing to audit X.`
+
 ## Full layout
 
 ```text
@@ -279,7 +286,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 19 skills incl. game development, security auditing, checkpointing, frontend-engineering
+└── .cline/skills/    # 21 skills incl. game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).
@@ -304,11 +311,13 @@ lite/
 └── .cline/skills/
     ├── change-planning/
     ├── checkpointed-analysis/
+    ├── cli-subagent-progress-logging/
     ├── deep-debugging/
-    └── persistent-analysis-store/
+    ├── persistent-analysis-store/
+    └── subagent-model-routing/
 ```
 
-Planning, debugging, and long-running checkpointed investigation live in **skills** so always-on context stays small.
+Planning, debugging, and long-running checkpointed investigation live in **skills** so always-on context stays small. `cli-subagent-progress-logging` (in both profiles) keeps CLI-launched children auditable: combined output mirrored to a per-run log, `set -o pipefail` so a failed child is not masked by a successful `tee`, and a concise outcome + log-path report.
 
 ## Iteration advice
 

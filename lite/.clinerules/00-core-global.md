@@ -27,7 +27,7 @@ Skills run on the primary. Choose by capability (user "solo" / "no subagents" â†
 1. **Delegated** (OpenCode/Cursor): `@agent`/Task for noisy search/logs/diffs; primary keeps ledgers, verdicts, gate. Children return short digests only. No parallel competing owners.
 2. **Research-assist** (Cline): read-only `use_subagents` for search/map only; primary owns procedure/edits.
 3. **Solo**: all steps on primary when helpers unavailable or the task is tiny.
-Follow each skill's **Subagent fan-out** section when present.
+Follow each skill's **Subagent fan-out** section when present. CLI children (`hermes chat`, test/build tools) launched instead of a native sub-agent: follow the `cli-subagent-progress-logging` skill â€” `2>&1 | tee` to a per-run log with `set -o pipefail`; report exit status and log path.
 
 ## Task contract (non-trivial)
 Establish: objective, acceptance criteria, current behavior, non-goals, constraints, unknowns. Inspect before guessing. Do not broaden scope opportunistically.

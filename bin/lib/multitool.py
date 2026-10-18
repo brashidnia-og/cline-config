@@ -148,16 +148,20 @@ def render_rules(profile, tool):
     intro = core[:start].replace("You are running through Cline with a local model.",
                                  f"You are running through {tool}.")
     intro = intro.replace("Assume the model is capable but more context-limited and less reliable than a frontier hosted model. ", "")
+    cli_children = ("When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build tools) "
+                    "instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: "
+                    "mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with "
+                    "`set -o pipefail`, and report its exit status and log path.")
     if tool == "Hermes":
         delegation = ("## Skill execution (subagents)\n\nSkills run on the primary. "
                       "When useful, use `delegate_task` with a specific goal, context, and role from "
                       "the `cline-config-delegation` skill. Keep decisions and final verification on the primary. "
-                      "If delegation is unavailable or the user says solo, perform the steps yourself.\n")
+                      "If delegation is unavailable or the user says solo, perform the steps yourself.\n\n" + cli_children + "\n")
     else:
         delegation = ("## Skill execution (subagents)\n\nSkills run on the primary. "
                       "Use the installed named agents for focused tasks when useful; give each an explicit scope. "
                       "Keep decisions and final verification on the primary. "
-                      "If agents are unavailable or the user says solo, perform the steps yourself.\n")
+                      "If agents are unavailable or the user says solo, perform the steps yourself.\n\n" + cli_children + "\n")
     core = intro + delegation + core[following:]
     pieces = [core]
     for rule in sorted(rules.rglob("*.md")):

@@ -226,7 +226,7 @@ Global destinations (auto-detected):
   OpenCode skills: ~/.config/opencode/skills
   OpenCode agents: ~/.config/opencode/agents   (from agents/catalog + agents/${profile}.list)
   Cursor agents:   ~/.cursor/agents            (same catalog; Cursor frontmatter)
-  Cursor skills:   ~/.cursor/skills            (full profile game skills)
+  Cursor skills:   ~/.cursor/skills            (game skills in full; CLI sub-agent logging in both profiles)
   Codex skills:    ~/.agents/skills            (all profile skills)
   Codex agents:    ~/.codex/agents            (profile agent catalog)
   Claude rules:    ~/.claude/CLAUDE.md + ~/.claude/rules

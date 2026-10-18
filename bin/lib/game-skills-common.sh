@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Install game-development skills to tools that do not use the
-# existing Cline/OpenCode profile skill sync. Only directories carrying our
-# marker are replaced or removed; personal skills are never overwritten.
+# Install skills to tools that do not use the existing Cline/OpenCode
+# profile skill sync (Cursor has no generated rules file, so installed
+# skills are its only cline-config guidance besides agents). Only
+# directories carrying our marker are replaced or removed; personal
+# skills are never overwritten.
+#
+# GAME_SKILLS: game-development skills, full profile only (removed on lite).
+# CURSOR_SHARED_SKILLS: non-game skills Cursor receives in every profile.
 
 set -euo pipefail
 
@@ -13,48 +18,70 @@ GAME_SKILLS=(
   godot-game-development
   game-performance-profiling
 )
+CURSOR_SHARED_SKILLS=(
+  cli-subagent-progress-logging
+)
 GAME_SKILL_MARKER=".cline-config-managed"
 
-install_game_skills_to_dir() {
-  local profile="$1" dest="$2" tool="$3" dry_run="${4:-0}"
-  local source_root="${REPO_ROOT}/full/.cline/skills"
-  local skill source target
-  info "  Game skills (${tool}): ${dest}/"
-
-  for skill in "${GAME_SKILLS[@]}"; do
-    source="${source_root}/${skill}"
+# Replace DEST/SKILL with a managed copy of SOURCE (staged, then renamed).
+# An existing unmarked personal directory is left untouched.
+install_managed_cursor_skill() {
+    local source="$1" dest="$2" skill="$3" dry_run="${4:-0}"
+    local target staged
     target="${dest}/${skill}"
-    [[ -f "${source}/SKILL.md" ]] || die "game skill missing: ${source}/SKILL.md"
     if [[ -e "$target" && ! -f "${target}/${GAME_SKILL_MARKER}" ]]; then
-      info "  game skills: leaving unmarked ${target} untouched"
-      continue
-    fi
-    if [[ "$profile" != "full" ]]; then
-      if [[ -e "$target" ]]; then
-        if [[ "$dry_run" == "1" ]]; then
-          info "  [dry-run] remove managed ${target}"
-        else
-          rm -rf -- "$target"
-          info "  game skills: removed managed ${target}"
-        fi
-      fi
-      continue
+        info "  Cursor skills: leaving unmarked ${target} untouched"
+        return
     fi
     if [[ "$dry_run" == "1" ]]; then
-      info "  [dry-run] install ${source} -> ${target}"
-      continue
+        info "  [dry-run] install ${source} -> ${target}"
+        return
     fi
     mkdir -p "$dest"
-    local staged
     staged="$(mktemp -d "${dest}/.${skill}.XXXXXX")"
     cp -a "${source}/." "$staged/"
     printf '%s\n' 'Managed by cline-config. Reinstall replaces this directory.' > "${staged}/${GAME_SKILL_MARKER}"
     if [[ -e "$target" ]]; then
-      rm -rf -- "$target"
+        rm -rf -- "$target"
     fi
     mv -- "$staged" "$target"
-    info "  game skills: installed ${target}"
-  done
+    info "  Cursor skills: installed ${target}"
+}
+
+install_game_skills_to_dir() {
+    local profile="$1" dest="$2" tool="$3" dry_run="${4:-0}"
+    local source_root="${REPO_ROOT}/full/.cline/skills"
+    local skill source target
+    info "  Skills (${tool}): ${dest}/"
+
+    for skill in "${GAME_SKILLS[@]}"; do
+        source="${source_root}/${skill}"
+        target="${dest}/${skill}"
+        [[ -f "${source}/SKILL.md" ]] || die "game skill missing: ${source}/SKILL.md"
+        if [[ -e "$target" && ! -f "${target}/${GAME_SKILL_MARKER}" ]]; then
+            info "  game skills: leaving unmarked ${target} untouched"
+            continue
+        fi
+        if [[ "$profile" != "full" ]]; then
+            if [[ -e "$target" ]]; then
+                if [[ "$dry_run" == "1" ]]; then
+                    info "  [dry-run] remove managed ${target}"
+                else
+                    rm -rf -- "$target"
+                    info "  game skills: removed managed ${target}"
+                fi
+            fi
+            continue
+        fi
+        install_managed_cursor_skill "$source" "$dest" "$skill" "$dry_run"
+    done
+
+    # Shared (non-game) skills: installed for every profile.
+    for skill in "${CURSOR_SHARED_SKILLS[@]}"; do
+        source="${REPO_ROOT}/${profile}/.cline/skills/${skill}"
+        [[ -f "${source}/SKILL.md" ]] || die "shared Cursor skill missing: ${source}/SKILL.md"
+        install_managed_cursor_skill "$source" "$dest" "$skill" "$dry_run"
+    done
 }
 
 install_game_skills_global() {
