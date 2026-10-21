@@ -14,9 +14,9 @@ Read `project.godot`, relevant scenes/scripts/resources, autoloads, plugins, inp
 ## Build the feature
 
 1. Apply `game-reference-to-spec` when behavior comes from a reference game; apply `gameplay-code-quality` for state and component design.
-2. Place reusable behavior in the smallest suitable scene, script, or resource. Keep authored data in resources or registries when many variants share behavior. Use signals or explicit calls according to ownership and lifetime; disconnect or free correctly.
+2. For a real code-level design choice, use `design-for-change`; use `polymorphism-and-strategy` for distinct algorithms/adapters and `state-machine-design` for lifecycle-dependent behavior or scattered transitions. Place reusable behavior in the smallest suitable scene, script, or resource. Keep authored values in Resources when variants share behavior; compose independent capabilities rather than forcing class hierarchies. Use signals or explicit calls according to ownership and lifetime; disconnect or free correctly.
 3. Put fixed-step simulation and collision decisions in physics processing when appropriate; keep visual interpolation and presentation separate. Respect delta time, pauses, scene transitions, and input ownership. Do not infer gameplay collision from art meshes without a design reason.
-4. Reuse the project's controller, camera, animation, graphics profiles, and asset pipeline. Test imported assets and scenes in the actual renderer; headless checks cannot establish visual quality.
+4. Reuse the project's controller, camera, animation, graphics profiles, and asset pipeline. Test imported assets and scenes in the actual renderer; headless checks cannot establish visual quality. For shared behavior across variant scenes/resources, verify the contract for each variant and at least one variant-specific invalid-input or lifecycle case; a sixth-variant thought experiment does not replace actual playtesting.
 5. For performance-sensitive features, record the expected maximum actor count and target device. Keep hot-path work bounded, then profile rather than assuming an optimization worked.
 
 ## Verification

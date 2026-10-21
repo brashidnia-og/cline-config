@@ -19,11 +19,11 @@ Read relevant code, tests, config, and dependency versions. Trace current contro
 ## 3. Invariants and ownership
 State invariants that must hold. Name state owners/sources of truth and trust boundaries.
 
-## 4. Options
-For consequential choices, compare 2 viable approaches briefly and pick one with rationale tied to this repo.
+## 4. Options and variation
+Separate shared behavior from independent variation (constants vs algorithms vs capabilities vs lifecycle). For a real design choice, run the `design-for-change` procedure (installed alongside this skill): inspect conventions, name responsibilities/invariants/state owners, compare only genuinely viable options, pick the smallest coherent design, and challenge it with a sixth variant. For genuine algorithm/adapter variation behind a common contract, use `polymorphism-and-strategy`; for lifecycle/event-order rules or scattered transitions, use `state-machine-design` to assess fit and define the transition contract, then return here. Keep each comparison brief and tie the rationale to this repo.
 
 ## 5. Sequence
-Ordered steps with: files/contracts touched, intended behavior, validation per step, migration/rollback if relevant. No vague “update backend” steps.
+Ordered steps with: files/contracts touched, intended behavior, validation per step, migration/rollback if relevant. No vague “update backend” steps. If implementation follows, emit one bounded task per independently verifiable responsibility using the compact handoff from `design-for-change` (`references/design-handoff.md`): objective, owned files, contracts/invariants, acceptance, escalation. Plain-language briefs are fine for research.
 
 ## 6. Risks
 Compatibility, security, concurrency, failure/partial success, operability.

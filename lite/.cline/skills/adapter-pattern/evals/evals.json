@@ -1,0 +1,7 @@
+{
+  "skill_name": "adapter-pattern",
+  "evals": [
+    {"id": 1, "prompt": "Plan only, no repository supplied. Adapt a supplier's integer-cent prices, optional zone-qualified timestamps, unknown status values and paginated responses into our domain contract. A second supplier lacks cancellation. Explain translation, capability limits and checks without inventing SDK APIs.", "expected_output": "Explicit precision/time/unknown-value mappings, bounded pagination and honest capability limits.", "files": [], "assertions": ["Preserves price precision and explicit timestamp/null semantics.", "Exposes unsupported cancellation rather than claiming equivalence.", "Bounds pagination and checks malformed responses/errors."]},
+    {"id": 2, "prompt": "Conceptual only. Three compression functions already implement exactly the same contract, and one compatible client needs only a timing wrapper. Should we create adapters and a universal vendor interface for both? Explain the smallest choices.", "expected_output": "Strategy/direct selection for algorithms, Decorator for additive timing, no invented mismatch.", "files": [], "assertions": ["Declines adapters without a contract mismatch.", "Distinguishes replacement strategy from additive decoration."]}
+  ]
+}

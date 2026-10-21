@@ -337,7 +337,10 @@ install_opencode_global() {
 # unless --force was given (it is backed up first in that case). Project
 # skills are skipped (with a note) when the same name already exists in the
 # user's global OpenCode skills directory, because duplicate names break
-# OpenCode skill discovery.
+# OpenCode skill discovery. When the global copy exists but DIFFERS from
+# the profile source (a stale global install, or a personal global skill
+# shadowing the project one), the mismatch is reported and the global copy
+# is left untouched — a project install never overwrites global content.
 install_opencode_project() {
   local profile_root="$1"
   local project_dir="$2"
@@ -423,7 +426,12 @@ install_opencode_project() {
     [[ -d "$d" ]] || continue
     name="$(basename "$d")"
     if [[ -d "${global_skills}/${name}" ]]; then
-      info "  skills: skipped '${name}' (already installed in ${global_skills}; duplicate names break OpenCode discovery)"
+      if diff -rq "${d%/}" "${global_skills}/${name}" >/dev/null 2>&1; then
+        info "  skills: skipped '${name}' (identical copy already in ${global_skills}; duplicate names break OpenCode discovery)"
+      else
+        info "  skills: MISMATCH '${name}' in ${global_skills} differs from this profile's source — the global copy was left untouched and the project copy was skipped (duplicate names break OpenCode discovery)."
+        info "    If that global copy is cline-config-managed, re-run the global installer to refresh it; if it is your own personal skill, it shadows the project copy — rename or move the global copy, or use the inline/Solo fallback."
+      fi
       continue
     fi
     cp -a "$d" "${skills_dest}/"

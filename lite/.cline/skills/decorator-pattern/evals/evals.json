@@ -1,0 +1,29 @@
+{
+  "skill_name": "decorator-pattern",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Plan only; no repository is supplied. Our async tenant-scoped Reader has read(key, principal, signal). We want optional metrics, bounded retry for transient errors on replayable idempotent reads, a tenant/principal-scoped cache, and authorization that checks current access on every call including cache hits. Show an outer-to-inner composition using the Decorator pattern, explain logical-call versus attempt metrics and retry/deadline semantics, name state/resource owners, and propose meaningful tests. Do not invent framework APIs.",
+      "expected_output": "A bounded plan with explicit wrapper order, authorization outside the cache, scoped keys, deliberate metric frequency, idempotent/cancellable bounded retry and overall deadlines, ownership, and outcome-based checks.",
+      "files": [],
+      "assertions": [
+        "Checks authorization before cache hits and scopes cache entries by tenant/principal.",
+        "Distinguishes logical-call metrics from attempt metrics.",
+        "Bounds eligible retries and propagates cancellation through backoff.",
+        "Names state/resource owners and proposes outcome-based tests."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Conceptual design question only. We have three mutually exclusive pricing algorithms selected once at checkout, one fixed private formatting helper, and an unrelated Python @dataclass declaration. A teammate wants all of them rewritten as a Decorator hierarchy. Is that a good fit? Explain the smallest appropriate structures, distinguish the structural pattern from @ syntax, and give one contrasting case where a Decorator would fit. No files or framework details are available.",
+      "expected_output": "Decline a forced hierarchy, prefer strategy or a small closed dispatch for replacement algorithms and a direct helper for fixed formatting, distinguish @dataclass from structural decoration, and illustrate genuine additive wrapping without editing or inventing repository facts.",
+      "files": [],
+      "assertions": [
+        "Rejects additive layering for mutually exclusive algorithms and selects strategy or a small dispatch.",
+        "Keeps fixed private formatting as a helper.",
+        "Distinguishes Python decorator syntax from the structural pattern.",
+        "Gives an additive, composable wrapping counterexample."
+      ]
+    }
+  ]
+}

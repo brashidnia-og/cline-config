@@ -23,7 +23,7 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 | OpenCode skills | `~/.config/opencode/skills` | same |
 | OpenCode agents | `~/.config/opencode/agents` (from `agents/catalog` + profile list) | same |
 | Cursor agents | `~/.cursor/agents` (same catalog; Cursor frontmatter) | same |
-| Cursor skills | `~/.cursor/skills` (game skills in full; CLI sub-agent logging in both profiles) | same |
+| Cursor skills | `~/.cursor/skills` (game skills in full; design, state machines, variation, routing, and CLI logging skills in both profiles) | same |
 | Codex rules, skills, agents | `~/.codex/AGENTS.md`, `~/.agents/skills`, `~/.codex/agents` | same |
 | Claude Code rules, skills, agents | `~/.claude/CLAUDE.md`, `~/.claude/rules`, `~/.claude/skills`, `~/.claude/agents` | same |
 | Hermes skills, core rules, delegation guide | `~/.hermes/skills/cline-config`, `~/.hermes/skills/cline-config-core`, `~/.hermes/skills/cline-config-delegation` | same |
@@ -51,7 +51,7 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the `cli-subagent-progress-logging` skill (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
+Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the shared design/pattern/reliability skills described below plus `subagent-model-routing` and `cli-subagent-progress-logging` (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
 
 ### Codex, Claude Code, and Hermes
 
@@ -75,6 +75,43 @@ The full profile includes four reusable game-development skills:
 
 The read-only `game-performance-reviewer` agent checks profiler evidence and before/after claims in Cursor and OpenCode. The performance skill covers Godot now and includes the shared measurement process for Unity; a Unity-specific development skill will be added when there is a Unity project to validate it against.
 
+### Design patterns and reliability (`full/` and `lite/`)
+
+Both profiles include the following focused guides. Each supports explanation, planning, implementation, and review, starts with repository evidence and a fit check, and defines ownership, failure semantics, and meaningful verification. Examples are illustrative rather than assumed project APIs.
+
+| Skill | Use it for |
+|---|---|
+| [`adapter-pattern`](full/.cline/skills/adapter-pattern/SKILL.md) | Translate incompatible external/legacy contracts, including types, errors, units, pagination, and capability limits. |
+| [`pipeline-and-chain-of-responsibility`](full/.cline/skills/pipeline-and-chain-of-responsibility/SKILL.md) | Ordered transformations, first-handler chains, and around middleware with explicit stopping and partial-failure semantics. |
+| [`command-pattern`](full/.cline/skills/command-pattern/SKILL.md) | Deferred intent, execution-time validation, queued work, and bounded undo/redo history. |
+| [`observer-and-events`](full/.cline/skills/observer-and-events/SKILL.md) | Subscription lifetime, event snapshots/order/reentrancy, listener failures, and local versus durable delivery. |
+| [`composite-pattern`](full/.cline/skills/composite-pattern/SKILL.md) | Uniform leaf/group operations, tree versus shared-graph ownership, safe mutation, and bounded traversal. |
+| [`idempotency-and-retries`](full/.cline/skills/idempotency-and-retries/SKILL.md) | Duplicate requests/effects, ambiguous timeouts, concurrent claims, retention, reconciliation, and retry budgets. |
+| [`transactional-outbox`](full/.cline/skills/transactional-outbox/SKILL.md) | Atomic state plus publication intent, relay recovery, duplicate-safe consumers, ordering, and rollout/operations. |
+| [`cache-design`](full/.cline/skills/cache-design/SKILL.md) | Identity/isolation, freshness/invalidation, stale fills, stampedes, resource bounds, and outage fallback. |
+
+[`design-for-change`](full/.cline/skills/design-for-change/SKILL.md) owns the broader design and routes only unresolved focused concerns to these skills. It also includes [Factory, Builder, and composition-root guidance](full/.cline/skills/design-for-change/references/construction.md): direct construction versus factories, validated options/builders, dependency scopes, owned/borrowed resources, and partial-construction cleanup. `polymorphism-and-strategy`, `decorator-pattern`, and `state-machine-design` remain focused on interchangeable behavior, additive wrapping, and lifecycle transitions respectively.
+
+The eight guides and the construction guidance each include two reusable scenarios in their skill's `evals/evals.json`: a substantive design case and a counterexample/misuse case. The repository tests validate their metadata, links, profile parity, bundled resources, and real installer destinations; these structural checks do not by themselves establish model-response quality.
+
+Example prompts: `Use adapter-pattern to isolate this supplier API`, `Use command-pattern to design conflict-aware undo`, or `Use transactional-outbox to review the commit/publish crash windows`.
+
+### Decorator pattern (`full/` and `lite/`)
+
+[`decorator-pattern`](full/.cline/skills/decorator-pattern/SKILL.md) assesses, implements, and reviews composable wrappers that add behavior while preserving the caller-facing contract. It covers explicit wrapper ordering, delegation frequency, async/streaming behavior, cancellation, resource ownership, construction/DI wiring, and meaningful validation. It compares Decorator with strategies, adapters, proxies, existing middleware, and direct helpers, and distinguishes the structural pattern from language `@decorator` syntax.
+
+`design-for-change` routes additive wrapping decisions to this skill and retains the broader design. A supporting reference illustrates an async timing wrapper and order-sensitive metrics/retry and authorization/cache combinations. Two reusable scenario prompts live in the skill's `evals/evals.json`.
+
+Example prompts: `Use decorator-pattern to add optional metrics around this client` or `Review the authorization/cache/retry wrapper order using decorator-pattern`.
+
+### State machine design (`full/` and `lite/`)
+
+[`state-machine-design`](full/.cline/skills/state-machine-design/SKILL.md) helps recognize implicit lifecycles, design legal transitions, and refactor business/data-processing or gameplay logic incrementally. It compares machines with pipelines, strategies, and existing small switches; the number of branches alone does not justify a rewrite. Supporting references cover modeling choices, async attempts and durable-state migration, sequence testing, and gameplay timing/interruptions.
+
+`design-for-change` routes lifecycle decisions into this skill and keeps ownership of the broader design. `polymorphism-and-strategy`, the lite planning skill, and the full gameplay/Godot skills also route relevant work to it. The skill uses the project's language, engine, and test tools; it adds no runtime dependency.
+
+Example prompts: `Assess whether this job's retry/cancel logic should use a state machine` or `Use state-machine-design to model interruptible character actions and their tests`.
+
 ### 2D image to 3D character workflow
 
 The full profile includes two linked skills:
@@ -84,9 +121,9 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills plus the `cli-subagent-progress-logging` skill (both profiles). Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills in full and 14 shared skills in both profiles: the eight pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
-Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. OpenCode retains its existing profile-wide replacement behavior.
+Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. If you downgrade to a revision from before these shared skills were added, that older Cursor installer cannot know to remove them; run `./bin/cursor-shared-skill-cleanup.sh` (or pass a skills directory) to remove managed design/routing skills from the script's explicit allowlist. Keep a copy of the current cleanup script before downgrading. Use `-n` to preview; unmarked same-name personal directories are preserved. The CLI progress-logging skill is outside that cleanup allowlist. OpenCode retains its existing profile-wide replacement behavior.
 
 Or manually (Cline only — the OpenCode `AGENTS.md` is generated by the installer):
 ```bash
@@ -104,7 +141,7 @@ OpenCode consumes a different layout than Cline, so the installer **generates** 
 | `paths:`-gated rules | no path gating | the frontmatter is stripped and replaced by a prose condition (“apply only when the current work touches … matching `**/…`”) |
 | `~/.cline/skills/` + per-skill toggles | `~/.config/opencode/skills/` (or `.opencode/skills/` per project) | the same `SKILL.md` folders, copied verbatim |
 | (no Cline agent files) | `agents/*.md` subagents + Cursor `.cursor/agents/` | renders [`agents/catalog/`](agents/catalog/) via profile list into OpenCode + Cursor destinations |
-| duplicate skill names: global wins over project | duplicate names **break skill discovery** | same-named project skills are skipped with a note; collisions with `~/.claude/skills` or `~/.agents/skills` produce a warning (fix with `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` if a skill fails to load) |
+| duplicate skill names: global wins over project | duplicate names **break skill discovery** | same-named project skills are skipped; identical global copies are reported as already present, while differing global copies produce a mismatch warning and are never overwritten. Refresh a cline-config-managed global copy with the global installer; personal global copies remain untouched and shadow the project copy. Collisions with `~/.claude/skills` or `~/.agents/skills` produce a warning (fix with `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` if a skill fails to load) |
 
 Behavior worth knowing:
 
@@ -157,13 +194,14 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 
 **Cline:** no named agent files are installed. Use skills plus Cline’s built-in read-only `use_subagents` research feature.
 
-**`full` agents (16):**
+**`full` agents (17):**
 
 | Agent | Role | Edits? |
 |-------|------|--------|
 | `explore` | Codebase map / search | No |
 | `general` | Multi-step child worker | Yes |
 | `planner` | Design before edits | No |
+| `architecture-reviewer` | Independent design challenge for substantial changes | No |
 | `code-reviewer` | Diff/PR review | No |
 | `security-auditor` | Security pass | No |
 | `debugger` | Root-cause diagnosis | No |
@@ -286,7 +324,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 21 skills incl. game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
+└── .cline/skills/    # 33 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).
@@ -309,16 +347,46 @@ lite/
 │   ├── 50-verify.md
 │   └── cmd/10-cmd-safety.md
 └── .cline/skills/
+    ├── adapter-pattern/
+    ├── cache-design/
     ├── change-planning/
     ├── checkpointed-analysis/
     ├── cli-subagent-progress-logging/
+    ├── command-pattern/
+    ├── composite-pattern/
     ├── deep-debugging/
+    ├── decorator-pattern/
+    ├── design-for-change/
+    ├── idempotency-and-retries/
+    ├── observer-and-events/
     ├── persistent-analysis-store/
-    └── subagent-model-routing/
+    ├── pipeline-and-chain-of-responsibility/
+    ├── polymorphism-and-strategy/
+    ├── state-machine-design/
+    ├── subagent-model-routing/
+    └── transactional-outbox/
 ```
 
-Planning, debugging, and long-running checkpointed investigation live in **skills** so always-on context stays small. `cli-subagent-progress-logging` (in both profiles) keeps CLI-launched children auditable: combined output mirrored to a per-run log, `set -o pipefail` so a failed child is not masked by a successful `tee`, and a concise outcome + log-path report.
+Planning, debugging, design selection, and long-running checkpointed investigation live in **skills** so always-on context stays small. `design-for-change` is for nontrivial code-level responsibility/variation choices; `decorator-pattern` handles composable additive wrappers; `polymorphism-and-strategy` is conditional on genuinely varying behavior; `state-machine-design` handles lifecycle/event-order modeling and refactoring. Both profiles include these skills. `cli-subagent-progress-logging` (in both profiles) keeps CLI-launched children auditable: combined output mirrored to a per-run log, `set -o pipefail` so a failed child is not masked by a successful `tee`, and a concise outcome + log-path report.
 
 ## Iteration advice
 
 Change one concern at a time and observe local-model behavior. Keep `00-core` from becoming a handbook—push procedures into skills. Prefer path-gated lang/cmd rules in `full/` for stack-specific depth. In the generated OpenCode `AGENTS.md`, path-gated rules become prose conditions, so keep their `paths:` lists meaningful when read as prose.
+
+## Configuration guidance tests
+
+After changing profile skills, agents, or renderers, run the focused source-tree and disposable-renderer regression suites:
+
+```bash
+python3 tests/test_multitool.py
+python3 tests/test_design_guidance.py
+```
+
+The wrapper dry-runs show installer destinations without writing and skip live MCP/OpenCode model refreshes:
+
+```bash
+./bin/install-full.sh -n --skip-mcp --skip-opencode
+./bin/install-lite.sh -n --skip-mcp --skip-opencode
+```
+
+Renderer tests use temporary homes/projects; do not use a live user configuration as a test sandbox.

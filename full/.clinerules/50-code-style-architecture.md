@@ -2,6 +2,20 @@
 
 Architecture is a means to preserve invariants, ownership, testability, and change boundaries—not a checklist of named patterns.
 
+## Design routing (when to load what)
+
+- **Trivial change** (typo, rename, config edit, one-line fix, one unambiguous existing pattern): edit directly; load no design skill.
+- **Nontrivial component/feature/refactor with a real design choice:** load `design-for-change` — it owns code-level responsibilities, invariants, state ownership, variation analysis, and the bounded task handoff.
+- **Genuine algorithm/adapter variation behind a common contract** (within the above): load `polymorphism-and-strategy` for the structure decision, then return to `design-for-change`.
+- **Composable additive behavior around the same contract:** use `decorator-pattern` to assess wrappers, delegation semantics, and composition order, then return to the caller.
+- **Lifecycle/event-order rules, interacting state flags, or scattered transitions:** use `state-machine-design` to assess fit and define the transition contract, then return to the caller; a pipeline or existing small switch may remain appropriate.
+- **System/service/data/deployment boundaries, cross-component changes, or an explicit architecture request:** load `architecture-review`; route code-level choices to `design-for-change` instead of restating them there.
+- **Lightweight change sequencing:** `change-planning` (lite) includes a compact variation step and reuses the `design-for-change` handoff.
+
+One owner per decision: do not load two competing design skills for the same choice, and never let a specialist skill redesign what its caller already resolved.
+
+`design-for-change` also routes focused decisions to `adapter-pattern`, `pipeline-and-chain-of-responsibility`, `command-pattern`, `observer-and-events`, `composite-pattern`, `idempotency-and-retries`, `transactional-outbox`, and `cache-design`. Use only the relevant specialist; Factory/Builder/composition-root guidance stays with `design-for-change`.
+
 ## Existing architecture first
 Before creating a new abstraction:
 1. Inspect how the repository currently solves adjacent problems.

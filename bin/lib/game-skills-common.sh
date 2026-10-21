@@ -19,6 +19,19 @@ GAME_SKILLS=(
   game-performance-profiling
 )
 CURSOR_SHARED_SKILLS=(
+  adapter-pattern
+  pipeline-and-chain-of-responsibility
+  command-pattern
+  observer-and-events
+  composite-pattern
+  idempotency-and-retries
+  transactional-outbox
+  cache-design
+  design-for-change
+  decorator-pattern
+  polymorphism-and-strategy
+  state-machine-design
+  subagent-model-routing
   cli-subagent-progress-logging
 )
 GAME_SKILL_MARKER=".cline-config-managed"

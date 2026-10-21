@@ -22,11 +22,19 @@ Safety/cmd rules > explicit user request > repository conventions > style prefer
 
 Do not silently change modes. Skip deep skills for trivial typos/renames/one-line fixes.
 
+## Design routing (compressed)
+Trivial edit → just do it. Real design choice → `design-for-change` (variation/ownership + bounded handoff); genuine algorithm/adapter variation behind a common contract → `polymorphism-and-strategy`; composable additive behavior around the same contract → `decorator-pattern` for wrapper contracts and ordering; lifecycle/event-order rules, interacting state flags, or scattered transitions → `state-machine-design` to assess fit and define the transition contract, then return. All four are installed here; the lite primary runs the architecture challenge inline (no full-only roles required).
+
+For adapters, pipelines/chains, commands, observers/events, composites, idempotency/retries, outbox, and cache policy, use the focused routing table in `design-for-change`. Factory/Builder/composition-root guidance also lives there. Select the relevant concern rather than loading the whole catalog; all of these guides are installed in lite.
+
 ## Skill execution (subagents)
 Skills run on the primary. Choose by capability (user "solo" / "no subagents" → Solo):
 1. **Delegated** (OpenCode/Cursor): `@agent`/Task for noisy search/logs/diffs; primary keeps ledgers, verdicts, gate. Children return short digests only. No parallel competing owners.
 2. **Research-assist** (Cline): read-only `use_subagents` for search/map only; primary owns procedure/edits.
 3. **Solo**: all steps on primary when helpers unavailable or the task is tiny.
+- Parallel fan-out is **read-only research only**; implementation writers are serial (one writer at a time). Primary owns canonical plans, task state, and analysis stores; workers return proposals/diffs.
+- An explicitly selected model or reasoning effort wins; if the harness cannot honor it, report it and keep the work on the primary — never silently swap models.
+- A referenced role that is not installed (e.g. full-only specialists) is performed by the primary inline (Solo for that step); do not fail the task.
 Follow each skill's **Subagent fan-out** section when present. CLI children (`hermes chat`, test/build tools) launched instead of a native sub-agent: follow the `cli-subagent-progress-logging` skill — `2>&1 | tee` to a per-run log with `set -o pipefail`; report exit status and log path.
 
 ## Task contract (non-trivial)

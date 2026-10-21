@@ -39,6 +39,8 @@ hermes chat "the goal" 2>&1 | tee "$LOG"
 - While the child is running, report progress from the live stream; if the parent view shows nothing, tail the log instead.
 - On completion, return a concise summary: child command, exit status, elapsed time, key outcome, and the log path for follow-up.
 
+When available, record observed start/end timestamps and elapsed time, model/backend/variant, tool and repair-attempt counts, usage metrics, plus command, exit status, and log path. Mark unavailable or non-comparable usage/cache metrics as `unknown` (never zero). Do not infer hidden reasoning usage, store hidden reasoning, or log secrets. These optional fields supplement — and never replace — combined stdout/stderr capture, `pipefail`, and the actual child exit status.
+
 ## 5. Failure and capture handling
 
 - A log that is moving but shows no visible parent output is a capture problem (buffering, a wrong redirection, the harness consuming stdout) — diagnose the capture path before assuming the child is hung.

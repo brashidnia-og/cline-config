@@ -14,6 +14,7 @@ Follow `00-core-global` Skill execution modes. Under **Delegated**:
 - `@explore` — caller/callee and related-context maps when the diff alone is insufficient.
 - `@test-runner` / `@browser-tester` — only to confirm a suspected defect (short digests).
 - `@bash` — `git`/`diff` noise when the parent should stay on the coverage ledger.
+- `@architecture-reviewer` — only when the user explicitly asks for an architecture review of a substantial change; its observations feed the separate maintainability-observations section below, never the defect ledger.
 
 Primary owns the coverage ledger, false-positive bar, severity/confidence, and the final Scope/Summary/Findings report. Merge child findings; never treat a child severity as final without a reachable path. Under **Research-assist**, use `use_subagents` for search/map only. Under **Solo**, review entirely on the primary.
 
@@ -103,7 +104,7 @@ Separate:
 - Non-blocking maintainability observations,
 - Test gaps.
 
-A missing test alone is not automatically a product bug.
+A missing test alone is not automatically a product bug. Maintainability observations (duplicated decisions, coupling, needless layers, poor testability) stay in that category: they never receive a severity, are never counted in bug or security totals, and never bypass the reachable-path/confidence bar above — regardless of how confidently they are stated. A substantially architectural request ("is this design right?") is not a defect review: route it to the `architecture-review` skill (and `@architecture-reviewer` when installed) and note here that it was routed out of scope.
 
 Severity:
 - **Critical:** exploitable security, funds/data corruption, auth bypass, outage.

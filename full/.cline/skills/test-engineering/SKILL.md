@@ -48,6 +48,10 @@ Tests should:
 
 Use repository-established frameworks before adding dependencies.
 
+## Shared implementation contracts
+
+When multiple implementations/adapters intentionally satisfy one contract, run the same meaningful behavioral cases against each implementation. Then add implementation-specific tests for its distinct failure, invalid-input, cancellation, lifecycle, or integration-wiring behavior. Keep producer/consumer API compatibility tests distinct from tests that prove the implementations share runtime behavior. A new implementation should extend the contract suite without weakening existing assertions; assess a sixth variant to expose assumptions hidden by the current set.
+
 ## 4. Database integration
 
 When DB semantics matter, use the real DB engine/version as closely as practical (e.g. existing Testcontainers).

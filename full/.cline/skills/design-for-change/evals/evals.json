@@ -1,0 +1,7 @@
+{
+  "skill_name": "design-for-change",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. Bootstrap selects one of two storage providers, builds an export job with incompatible format options, and opens resources before a later construction step can fail. Choose Factory, Builder/options and composition-root responsibilities, owned/borrowed cleanup and checks without inventing project APIs.", "expected_output": "Separate selection, validated job construction and dependency lifetime ownership with partial-failure cleanup.", "files": [], "assertions": ["Separates creation selection, valid construction and application wiring.", "Compares builder to simpler typed options/direct construction.", "Defines scope and partial-failure cleanup without closing borrowed resources."]},
+    {"id": 2, "prompt": "Conceptual only. A private pure helper with two arguments currently uses a direct call. Should every object be constructed via an abstract factory, builder and global Singleton service locator for future flexibility? Explain the smallest design.", "expected_output": "Keep direct construction/calls and reject unowned layers and hidden global dependencies.", "files": [], "assertions": ["Prefers direct construction for trivial needs.", "Rejects mandatory factory/builder stacks and service locators."]}
+  ]
+}

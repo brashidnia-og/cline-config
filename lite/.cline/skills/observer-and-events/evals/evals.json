@@ -1,0 +1,7 @@
+{
+  "skill_name": "observer-and-events",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. A HUD repeatedly attaches to a health publisher; listeners may unsubscribe or publish nested changes during dispatch, and an async listener can fail or fall behind. Define lifetime, initial snapshot, payload timing and bounded delivery without assuming an engine API.", "expected_output": "Owned teardown, explicit reentrancy/in-flight rules, snapshot consistency and async failure/backpressure policy.", "files": [], "assertions": ["Pairs subscription lifetime with teardown and avoids duplicate registrations.", "Defines nested publish/unsubscribe and event-time snapshot behavior.", "Handles async failures and bounds slow-consumer work."]},
+    {"id": 2, "prompt": "Conceptual only. An order must reserve inventory before confirmation. Can two unordered local event listeners guarantee that sequence and durable delivery after a process crash? A teammate also proposes a broker for a transient HUD update. Assess.", "expected_output": "Explicit sequence owner for mandatory work; local listeners are not durable; no broker for a simple HUD event.", "files": [], "assertions": ["Rejects unordered listeners for mandatory sequencing.", "Distinguishes local notifications from durable messaging and avoids needless broker use."]}
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "skill_name": "cache-design",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. Tenant/principal-scoped profile reads use a shared cache. A reader loads old data while a writer commits and invalidates; concurrent misses stampede and one waiter cancels. Define identity, current authorization, freshness, stale-fill protection, coalescing, outage limits and deterministic checks without assuming store APIs.", "expected_output": "Scoped identity plus hit authorization, version/generation protection, isolated waiter cancellation and bounded cache/origin load.", "files": [], "assertions": ["Defines key dimensions and current authorization on hits.", "Handles stale repopulation after invalidation and shared-load waiter cancellation.", "Bounds resources/fallback and proposes coordinated concurrency checks."]},
+    {"id": 2, "prompt": "Conceptual only. A cheap formatter runs once per request. A teammate proposes unlimited caching, says TTL prevents every stale-write race and authorizing before a bare resource-ID cache makes it tenant-safe. Assess each claim.", "expected_output": "No speculative cache; explicit bounds, stale-fill protocol and correctly scoped keys still required.", "files": [], "assertions": ["Declines speculative caching and rejects TTL as a complete bound/race solution.", "Distinguishes access checks from cache identity/isolation."]}
+  ]
+}

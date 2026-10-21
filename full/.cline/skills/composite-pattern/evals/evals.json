@@ -1,0 +1,7 @@
+{
+  "skill_name": "composite-pattern",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. An imported document hierarchy supports leaf/group operations, moves, shared references and deep untrusted input. Explain tree versus DAG contracts, cycle checks, failed reparenting, traversal/aggregation limits and destruction ownership.", "expected_output": "Explicit identity/sharing rules, atomic moves, bounded traversal and owned resource lifetimes.", "files": [], "assertions": ["Distinguishes tree ownership from shared graph references and repeated contribution.", "Prevents cycles and failed moves from corrupting parent links.", "Bounds depth/work and separates detach from destruction."]},
+    {"id": 2, "prompt": "Conceptual only. Should a flat list sum use a Composite hierarchy? Can an empty authorization AND-group automatically allow access because all zero conditions are true? Explain the smallest structures and policy requirements.", "expected_output": "Direct aggregation for a flat list; explicit security semantics for empty permission groups.", "files": [], "assertions": ["Rejects unnecessary hierarchy for a flat list.", "Does not adopt mathematical empty-group identity as implicit authorization policy."]}
+  ]
+}

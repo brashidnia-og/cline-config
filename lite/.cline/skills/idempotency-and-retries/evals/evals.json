@@ -1,0 +1,7 @@
+{
+  "skill_name": "idempotency-and-retries",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. A payment API sees concurrent duplicate requests and loses a provider response after a possible successful charge. The SDK already retries. Define scoped keys, payload conflicts, unknown-outcome recovery, bounded retry/cancellation, retention and crash tests. Provider guarantees are not supplied.", "expected_output": "Stable identity, atomic local claims, provider evidence/reconciliation and explicit retry ownership without exactly-once claims.", "files": [], "assertions": ["Scopes keys and rejects mismatched intent under concurrent duplicates.", "Treats lost response as unknown and requires provider idempotency or reconciliation.", "Accounts for SDK retry multiplication, budgets/cancellation and dedup retention."]},
+    {"id": 2, "prompt": "Conceptual only. A non-idempotent remote charge gets a fresh random idempotency key on every retry. A local dedup row is committed before the remote call, and timeouts are marked failed so operators can retry freely. Does this ensure exactly-once charging? Explain.", "expected_output": "Reject guarantees; keys must persist across logical retries, local claims do not cover remote commits, unknown outcomes require recovery.", "files": [], "assertions": ["Rejects fresh-per-attempt keys and exactly-once claims.", "Identifies local/remote crash gap and timeout ambiguity."]}
+  ]
+}

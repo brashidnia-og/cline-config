@@ -44,6 +44,12 @@ Skills are methodology on the **primary** session. Pick an execution mode by cap
 
 When a loaded skill has a **Subagent fan-out** section, follow it under Delegated/Research-assist; otherwise stay Solo for that skill's steps.
 
+**Ownership and state.** Implementation writes are serial by default: one writer at a time. The primary owns canonical durable state — plans, task state, and analysis stores (e.g. `.ai/analysis/`); workers return proposed content or diffs, and the primary writes the canonical store. Parallel writers in separate worktrees are a later opt-in experiment, not the default.
+
+**Model and effort selection.** An explicitly selected model or reasoning effort for a worker wins over routing heuristics. If the harness cannot honor it (no model/effort setting, no delegation tool), report the limitation and keep the work on the primary — never silently substitute a different model.
+
+**Unavailable roles.** If a referenced named role is not installed or its delegation tool is unavailable, the primary performs that step itself (Solo for that step); do not fail the task or invent the missing role.
+
 When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build tools) instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with `set -o pipefail`, and report its exit status and log path.
 
 ## Decision procedure

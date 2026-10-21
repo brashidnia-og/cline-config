@@ -186,14 +186,20 @@ def render_cursor(agent_id: str, meta: dict, body: str) -> str:
 
 for agent_id in ids:
     src = catalog / f"{agent_id}.md"
+    target = dest_dir / f"{agent_id}.md"
+    # Preserve unmarked personal agents (same rule as the Python renderer):
+    # a user file we did not generate is never overwritten.
+    if target.exists() and marker not in target.read_text(encoding="utf-8"):
+        print(f"  agents: preserved personal agent {target}")
+        continue
     text = src.read_text(encoding="utf-8")
     meta, body = split_frontmatter(text)
     if tool == "opencode":
         out = render_opencode(agent_id, meta, body)
     else:
         out = render_cursor(agent_id, meta, body)
-    (dest_dir / f"{agent_id}.md").write_text(out, encoding="utf-8")
-    print(f"  agents: wrote {dest_dir / (agent_id + '.md')}")
+    target.write_text(out, encoding="utf-8")
+    print(f"  agents: wrote {target}")
 PY
 }
 

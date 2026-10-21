@@ -15,8 +15,13 @@ Follow `00-core-global` Skill execution modes. Under **Delegated**:
 - `@security-auditor` — trust-boundary skim (findings digest only).
 - `@scout` — framework/version capability limits.
 - `@planner` — phased implementation-plan draft.
+- `@architecture-reviewer` — independent challenge for substantial or cross-component designs (dispatch only when the change warrants it; trivial work never gets a second reviewer).
 
-Primary alone chooses among alternatives, owns invariants/ownership decisions, and runs the plan gate/premortem. Under **Solo**/Research-assist, stay on the primary (Cline: search fan-out only).
+Primary alone chooses among alternatives, owns invariants/ownership decisions, and runs the plan gate/premortem. The reviewer's output is input to the primary's decision, never a substitute for it. Under **Solo**/Research-assist, stay on the primary and run the same compact challenge inline (Cline: search fan-out only).
+
+## 0. Route code-level choices
+
+This skill owns system/service/data/deployment boundaries. When the design touches code-level responsibilities, invariants, state ownership, or independently varying behavior, route those decisions to the `design-for-change` skill (and `polymorphism-and-strategy` for genuine algorithm/adapter/lifecycle variation) instead of restating their procedure here. Bounded implementation tasks then reuse the compact handoff defined in `design-for-change` (`references/design-handoff.md`); do not invent a second handoff format.
 
 ## 1. Define the design problem
 

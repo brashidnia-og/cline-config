@@ -1,0 +1,7 @@
+{
+  "skill_name": "pipeline-and-chain-of-responsibility",
+  "evals": [
+    {"id": 1, "prompt": "Plan only, no framework supplied. Design an import handler chain that recognizes CSV or JSON, validates the parsed record and writes it once. Malformed recognized CSV must not fall through to JSON. Explain protocols, terminal outcomes, mandatory authorization, async next and partial failure.", "expected_output": "First-match recognition distinct from a transformation pipeline, explicit errors and once-only effects.", "files": [], "assertions": ["Separates pass from recognized-but-invalid and unsupported input.", "Makes mandatory checks and async next/stopping semantics explicit.", "Explains that later failure does not automatically roll back earlier effects."]},
+    {"id": 2, "prompt": "Conceptual only. One private function runs three pure transformations in a fixed order. Should we add a middleware registry, next callbacks and a state machine? Explain the smallest design and when that decision would change.", "expected_output": "Keep direct function calls unless actual reusable flow/lifecycle requirements appear.", "files": [], "assertions": ["Keeps the fixed sequence simple.", "Does not equate a pipeline with a lifecycle state machine."]}
+  ]
+}

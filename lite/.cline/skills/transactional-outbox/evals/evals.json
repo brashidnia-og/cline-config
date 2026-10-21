@@ -1,0 +1,7 @@
+{
+  "skill_name": "transactional-outbox",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. Order changes and eventual events must commit together in one database. Several relay workers publish to a broker and can crash after acknowledgement. Per-order sequence matters. Design atomic writes, claims, recovery, duplicate-safe consumers, poison-event handling, rollout and meaningful checks without inventing SQL/framework APIs.", "expected_output": "Atomic domain/outbox write, acknowledged at-least-once relay, enforced ordering, consumer atomic dedup and operational recovery.", "files": [], "assertions": ["Shares a verified local transaction and marks sent only after broker acknowledgement.", "Handles post-ack duplicates, competing/stale workers and per-key ordering gaps.", "Defines consumer dedup, poison recovery and rollout/observability checks."]},
+    {"id": 2, "prompt": "Conceptual only. A teammate puts the outbox in a separate database transaction, deletes rows before sending, and claims exactly-once remote email because consumers have a local processed marker. They also want outbox for a transient HUD event. Assess.", "expected_output": "Reject broken atomicity, premature deletion and external exactly-once claims; simple local notifications for HUD.", "files": [], "assertions": ["Identifies separate-transaction and delete-before-send loss windows.", "Rejects exactly-once remote effects and unnecessary HUD outbox."]}
+  ]
+}

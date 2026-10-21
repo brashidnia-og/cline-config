@@ -152,15 +152,21 @@ def render_rules(profile, tool):
                     "instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: "
                     "mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with "
                     "`set -o pipefail`, and report its exit status and log path.")
+    ownership = ("Keep decisions, final verification, and canonical durable state (plans, task state, "
+                 "analysis stores) on the primary; workers return short digests, proposed content, or diffs. "
+                 "Parallelize only independent read-only work — implementation writers are serial by default. "
+                 "An explicitly selected model or reasoning effort for a worker wins; if this harness cannot "
+                 "honor it, report the limitation and keep the work on the primary rather than silently "
+                 "substituting a different model. If a referenced role is unavailable, perform that step "
+                 "yourself.")
     if tool == "Hermes":
         delegation = ("## Skill execution (subagents)\n\nSkills run on the primary. "
                       "When useful, use `delegate_task` with a specific goal, context, and role from "
-                      "the `cline-config-delegation` skill. Keep decisions and final verification on the primary. "
+                      "the `cline-config-delegation` skill. " + ownership + " "
                       "If delegation is unavailable or the user says solo, perform the steps yourself.\n\n" + cli_children + "\n")
     else:
         delegation = ("## Skill execution (subagents)\n\nSkills run on the primary. "
-                      "Use the installed named agents for focused tasks when useful; give each an explicit scope. "
-                      "Keep decisions and final verification on the primary. "
+                      "Use the installed named agents for focused tasks when useful; give each an explicit scope. " + ownership + " "
                       "If agents are unavailable or the user says solo, perform the steps yourself.\n\n" + cli_children + "\n")
     core = intro + delegation + core[following:]
     pieces = [core]

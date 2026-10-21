@@ -40,6 +40,7 @@ When state changes:
 - migration impact on persisted state if any.
 
 Prefer the smallest coherent UI + state change that matches existing patterns.
+For nontrivial component/state-boundary choices, use `design-for-change` to name responsibilities and owners. Keep ordinary React composition, hooks, and Redux Toolkit patterns idiomatic; do not convert components into imperative class/interface hierarchies. Use `polymorphism-and-strategy` only for genuinely varying algorithms/adapters with a stable shared contract, and prefer data/config for variants that differ only in values.
 
 ## 4. Implement
 
@@ -55,6 +56,7 @@ Narrow → broad as risk warrants:
 - targeted Vitest/RTL tests,
 - Playwright for critical E2E flows if configured,
 - local-playwright / local-chrome-devtools for runtime evidence when UI behavior is unclear.
+- When multiple data adapters or implementations share behavior, run the same contract assertions for each and add an implementation-specific failure/cancellation case where applicable.
 
 ## 6. Final gate
 

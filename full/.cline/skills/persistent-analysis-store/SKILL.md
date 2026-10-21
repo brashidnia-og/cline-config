@@ -76,6 +76,7 @@ Directory/component map with status: `NOT INSPECTED` | `PARTIALLY INSPECTED` | `
 ### `IMPLEMENTATION_PLAN.md`
 
 Build only when the objective includes a plan. Grow it as understanding improves; do not finalize early. Capture sequencing, affected contracts, migrations, tests, compatibility, rollout, failure/rollback.
+For a substantial implementation handoff, this plan may link to the approved `design-for-change` handoff, including its schema version and base revision/worktree identity. The linked handoff supplements the plan; it does not replace it or transfer canonical-store ownership from the primary. Do not create either artifact for routine work that does not need persistence.
 
 ## 3. Confidence labels
 

@@ -1,0 +1,7 @@
+{
+  "skill_name": "command-pattern",
+  "evals": [
+    {"id": 1, "prompt": "Plan only. A collaborative document editor needs deferred move actions and undo/redo. Nodes can change after enqueue, permissions can be revoked, and actions can fail. Define intent, handlers, history, conflicts and checks without assuming event sourcing or a broker.", "expected_output": "Typed intent, execution-time validation, successful history, version/conflict rules and explicit undo/redo behavior.", "files": [], "assertions": ["Rechecks execution-time authority and target state/version.", "Adds history only after success and defines undo conflicts/redo branching.", "Keeps scheduling/history separate without requiring distributed infrastructure."]},
+    {"id": 2, "prompt": "Conceptual only. A private calculation executes once immediately. A teammate wants a command bus and persistent replay for it, and says every command including sending email can be undone generically. Assess both claims.", "expected_output": "Direct call for trivial work; irreversible effects need explicit compensation or cannot be undone.", "files": [], "assertions": ["Rejects unnecessary command infrastructure.", "Distinguishes reversible local edits from irreversible/compensated external effects."]}
+  ]
+}

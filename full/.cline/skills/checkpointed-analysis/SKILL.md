@@ -21,6 +21,8 @@ Follow `00-core-global` Skill execution modes. Under **Delegated**:
 
 **Primary alone** rewrites `STATE.md` and other store files (single writer). Do not let children checkpoint unless explicitly tasked `@general` with one named file path. Under **Research-assist**, `use_subagents` for search/map per cycle; primary still checkpoints. Under **Solo**, investigate and checkpoint on the primary.
 
+For a substantial investigation that already has an `IMPLEMENTATION_PLAN.md`, link to the approved versioned design/task handoff from `design-for-change` when it helps preserve resolved decisions and ownership across cycles. Keep the primary as canonical-state writer. Do not create a persistent store or handoff solely for a routine task; the ordinary plan location remains sufficient.
+
 ## 1. Activate store first
 
 Immediately load `persistent-analysis-store` and use `.ai/analysis/` as durable memory for the rest of the task.
