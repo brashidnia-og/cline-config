@@ -82,6 +82,7 @@ Both profiles include the following focused guides. Each supports explanation, p
 | Skill | Use it for |
 |---|---|
 | [`adapter-pattern`](full/.cline/skills/adapter-pattern/SKILL.md) | Translate incompatible external/legacy contracts, including types, errors, units, pagination, and capability limits. |
+| [`dependency-injection`](full/.cline/skills/dependency-injection/SKILL.md) | Explicit collaborators, scopes/captive dependencies, cycles, container behavior, resource ownership, and wiring verification. |
 | [`pipeline-and-chain-of-responsibility`](full/.cline/skills/pipeline-and-chain-of-responsibility/SKILL.md) | Ordered transformations, first-handler chains, and around middleware with explicit stopping and partial-failure semantics. |
 | [`command-pattern`](full/.cline/skills/command-pattern/SKILL.md) | Deferred intent, execution-time validation, queued work, and bounded undo/redo history. |
 | [`observer-and-events`](full/.cline/skills/observer-and-events/SKILL.md) | Subscription lifetime, event snapshots/order/reentrancy, listener failures, and local versus durable delivery. |
@@ -92,7 +93,9 @@ Both profiles include the following focused guides. Each supports explanation, p
 
 [`design-for-change`](full/.cline/skills/design-for-change/SKILL.md) owns the broader design and routes only unresolved focused concerns to these skills. It also includes [Factory, Builder, and composition-root guidance](full/.cline/skills/design-for-change/references/construction.md): direct construction versus factories, validated options/builders, dependency scopes, owned/borrowed resources, and partial-construction cleanup. `polymorphism-and-strategy`, `decorator-pattern`, and `state-machine-design` remain focused on interchangeable behavior, additive wrapping, and lifecycle transitions respectively.
 
-The eight guides and the construction guidance each include two reusable scenarios in their skill's `evals/evals.json`: a substantive design case and a counterexample/misuse case. The repository tests validate their metadata, links, profile parity, bundled resources, and real installer destinations; these structural checks do not by themselves establish model-response quality.
+The nine guides and the construction guidance each include two reusable scenarios in their skill's `evals/evals.json`: a substantive design case and a counterexample/misuse case. The repository tests validate their metadata, links, profile parity, bundled resources, and real installer destinations; these structural checks do not by themselves establish model-response quality.
+
+`dependency-injection` distinguishes DI from IoC and the Dependency Inversion Principle, and treats containers as optional wiring tools. It covers constructor/function/method injection, captive scoped dependencies (including factory closures), background-job scopes, initialization/cancellation, and owned-versus-borrowed resource cleanup. Factory/Builder/composition-root selection stays in the existing construction reference; there are no separate competing IoC/DIP/container guides. Example prompt: `Use dependency-injection to review singleton/request scope capture and cleanup`.
 
 Example prompts: `Use adapter-pattern to isolate this supplier API`, `Use command-pattern to design conflict-aware undo`, or `Use transactional-outbox to review the commit/publish crash windows`.
 
@@ -121,7 +124,7 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills in full and 14 shared skills in both profiles: the eight pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills in full and 15 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
 Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. If you downgrade to a revision from before these shared skills were added, that older Cursor installer cannot know to remove them; run `./bin/cursor-shared-skill-cleanup.sh` (or pass a skills directory) to remove managed design/routing skills from the script's explicit allowlist. Keep a copy of the current cleanup script before downgrading. Use `-n` to preview; unmarked same-name personal directories are preserved. The CLI progress-logging skill is outside that cleanup allowlist. OpenCode retains its existing profile-wide replacement behavior.
 
@@ -324,7 +327,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 33 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
+└── .cline/skills/    # 34 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).
@@ -356,6 +359,7 @@ lite/
     ├── composite-pattern/
     ├── deep-debugging/
     ├── decorator-pattern/
+    ├── dependency-injection/
     ├── design-for-change/
     ├── idempotency-and-retries/
     ├── observer-and-events/

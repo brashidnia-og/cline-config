@@ -14,7 +14,7 @@ Architecture is a means to preserve invariants, ownership, testability, and chan
 
 One owner per decision: do not load two competing design skills for the same choice, and never let a specialist skill redesign what its caller already resolved.
 
-`design-for-change` also routes focused decisions to `adapter-pattern`, `pipeline-and-chain-of-responsibility`, `command-pattern`, `observer-and-events`, `composite-pattern`, `idempotency-and-retries`, `transactional-outbox`, and `cache-design`. Use only the relevant specialist; Factory/Builder/composition-root guidance stays with `design-for-change`.
+`design-for-change` also routes focused decisions to `adapter-pattern`, `dependency-injection`, `pipeline-and-chain-of-responsibility`, `command-pattern`, `observer-and-events`, `composite-pattern`, `idempotency-and-retries`, `transactional-outbox`, and `cache-design`. Use only the relevant specialist; Factory/Builder/composition-root guidance stays with `design-for-change`.
 
 ## Existing architecture first
 Before creating a new abstraction:

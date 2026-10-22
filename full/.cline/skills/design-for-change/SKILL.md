@@ -37,6 +37,7 @@ For an unresolved concern, use only the focused skill that owns that decision, t
 | Concern | Skill |
 |---|---|
 | Translate an incompatible external/legacy contract | `adapter-pattern` |
+| Collaborator injection, captive lifetimes, cycles, or container wiring | `dependency-injection` |
 | Ordered transforms, first-handler selection, or around middleware | `pipeline-and-chain-of-responsibility` |
 | Represent intent for deferred execution or undo/history | `command-pattern` |
 | Notify interested subscribers with explicit lifetime/delivery semantics | `observer-and-events` |

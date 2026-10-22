@@ -15,6 +15,8 @@ These are illustrative design choices, not project APIs. Inspect the repository'
 
 A factory owns creation/selection, a builder owns accumulation/validation of construction inputs, and a composition root owns the application dependency graph and lifetimes. They need not all exist. Do not confuse Factory Method (overridable creation through inheritance) with every factory function; prefer composition unless existing extension requirements justify inheritance.
 
+Keep those construction choices here. For focused analysis of injection boundaries, captive dependencies, scope isolation, cycles, or container behavior, use [dependency-injection](../../dependency-injection/SKILL.md), then return the resolved graph/lifetime constraints to this construction owner. DI, IoC, DIP, and containers do not require separate competing wiring designs.
+
 ## Define the construction contract
 
 - Required inputs, safe defaults, validation order, unsupported variants, and useful failure results. Do not defer a known invalid configuration until an unrelated runtime method fails.

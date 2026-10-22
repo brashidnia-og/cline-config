@@ -25,7 +25,7 @@ Do not silently change modes. Skip deep skills for trivial typos/renames/one-lin
 ## Design routing (compressed)
 Trivial edit → just do it. Real design choice → `design-for-change` (variation/ownership + bounded handoff); genuine algorithm/adapter variation behind a common contract → `polymorphism-and-strategy`; composable additive behavior around the same contract → `decorator-pattern` for wrapper contracts and ordering; lifecycle/event-order rules, interacting state flags, or scattered transitions → `state-machine-design` to assess fit and define the transition contract, then return. All four are installed here; the lite primary runs the architecture challenge inline (no full-only roles required).
 
-For adapters, pipelines/chains, commands, observers/events, composites, idempotency/retries, outbox, and cache policy, use the focused routing table in `design-for-change`. Factory/Builder/composition-root guidance also lives there. Select the relevant concern rather than loading the whole catalog; all of these guides are installed in lite.
+For adapters, dependency injection, pipelines/chains, commands, observers/events, composites, idempotency/retries, outbox, and cache policy, use the focused routing table in `design-for-change`. Factory/Builder/composition-root guidance also lives there. Select the relevant concern rather than loading the whole catalog; all of these guides are installed in lite.
 
 ## Skill execution (subagents)
 Skills run on the primary. Choose by capability (user "solo" / "no subagents" → Solo):

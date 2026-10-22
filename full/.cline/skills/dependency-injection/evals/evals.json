@@ -1,0 +1,28 @@
+{
+  "skill_name": "dependency-injection",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Plan only, no framework supplied. A singleton background worker captures a request-scoped database session and tenant through a factory closure. Async initialization can fail after opening an owned client; another client is externally supplied and borrowed. A teammate suggests Lazy lookup through a global provider to fix the lifetime/cycle problems. Define injection boundaries, job scopes, resource ownership, safe failure/cancellation and meaningful tests without inventing container APIs. Keep Factory/Builder/composition-root selection with the existing construction guide.",
+      "expected_output": "Trace transitive capture, create operation-owned scopes per job, preserve tenant isolation, reject locator/lazy workarounds, and assign cleanup/validation without redesigning construction.",
+      "files": [],
+      "assertions": [
+        "Identifies that a closure or Lazy does not fix a captured shorter-lived dependency.",
+        "Defines job-scoped execution, explicit per-job tenant context and non-escaping scoped resources.",
+        "Cleans up owned partial initialization while preserving borrowed clients and primary failure/cancellation semantics.",
+        "Proposes scope/isolation and actual wiring checks without inventing framework APIs or competing construction ownership."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Conceptual only. A service already receives one concrete mail-sending callable from bootstrap, and a private pure helper has two arguments. Must we introduce interfaces for every class, a DI container, a Builder and a Singleton service locator? Explain DI versus IoC and DIP, the smallest appropriate injection, and where composition-root guidance belongs.",
+      "expected_output": "Keep explicit callable/direct calls, distinguish DI/IoC/DIP, and reject mandatory abstractions/containers/service location while retaining existing construction ownership.",
+      "files": [],
+      "assertions": [
+        "Recognizes existing callable injection and keeps trivial helpers direct.",
+        "Distinguishes DI from broader IoC and the Dependency Inversion Principle without requiring interfaces everywhere.",
+        "Rejects mandatory container/builder/service-locator machinery and reuses existing composition-root guidance."
+      ]
+    }
+  ]
+}

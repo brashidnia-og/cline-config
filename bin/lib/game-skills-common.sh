@@ -20,6 +20,7 @@ GAME_SKILLS=(
 )
 CURSOR_SHARED_SKILLS=(
   adapter-pattern
+  dependency-injection
   pipeline-and-chain-of-responsibility
   command-pattern
   observer-and-events

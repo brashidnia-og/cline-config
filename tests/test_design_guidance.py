@@ -32,7 +32,7 @@ SKILL_DIR_MARKER = ".cline-config-managed"
 PATTERN_SKILLS = {
     "adapter-pattern", "pipeline-and-chain-of-responsibility", "command-pattern",
     "observer-and-events", "composite-pattern", "idempotency-and-retries",
-    "transactional-outbox", "cache-design",
+    "transactional-outbox", "cache-design", "dependency-injection",
 }
 
 FULL_SKILLS = {
@@ -122,8 +122,8 @@ class SourceTreeTests(unittest.TestCase):
                          {p.name for p in full_tree.iterdir() if (p / "SKILL.md").is_file()})
         self.assertEqual(LITE_SKILLS,
                          {p.name for p in lite_tree.iterdir() if (p / "SKILL.md").is_file()})
-        self.assertEqual(33, len(FULL_SKILLS))
-        self.assertEqual(18, len(LITE_SKILLS))
+        self.assertEqual(34, len(FULL_SKILLS))
+        self.assertEqual(19, len(LITE_SKILLS))
 
     def test_pattern_links_and_evaluation_scenarios(self):
         for profile in ("full", "lite"):
@@ -382,14 +382,14 @@ class ShellRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, arch_text)
 
         oc_skills = self.home / "occonfig" / "skills"
-        self.assertEqual(33, len([p for p in oc_skills.iterdir() if p.is_dir()]))
+        self.assertEqual(34, len([p for p in oc_skills.iterdir() if p.is_dir()]))
         self.assertTrue((oc_skills / "design-for-change" / "references" / "design-handoff.md").is_file())
         self.assertTrue((self.home / ".cline" / "skills" / "polymorphism-and-strategy" / "SKILL.md").is_file())
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(20, len(managed), "full Cursor = 6 game + 14 shared skills")
+        self.assertEqual(21, len(managed), "full Cursor = 6 game + 15 shared skills")
         for name in ("design-for-change", "polymorphism-and-strategy",
                      "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging"):
             self.assertTrue((cursor_skills / name / "SKILL.md").is_file(),
@@ -427,12 +427,12 @@ class ShellRendererTests(unittest.TestCase):
         oc_agents = self.home / "occonfig" / "agents"
         self.assertEqual(7, len(list(oc_agents.glob("*.md"))))
         self.assertFalse((oc_agents / "architecture-reviewer.md").exists())
-        self.assertEqual(18, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
+        self.assertEqual(19, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p.name for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(14, len(managed), "lite keeps exactly the shared Cursor skills")
+        self.assertEqual(15, len(managed), "lite keeps exactly the shared Cursor skills")
         for game_skill in ("gameplay-code-quality", "godot-game-development",
                            "game-performance-profiling", "build-3d-game-characters",
                            "game-reference-to-spec", "derive-3d-character-specs"):
@@ -594,7 +594,7 @@ class PythonRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, (claude_agents / "architecture-reviewer.md").read_text())
 
         self.assertEqual("private\n", (private_skill / "SKILL.md").read_text())
-        self.assertEqual(34, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
+        self.assertEqual(35, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
 
         delegation = (self.home / ".hermes" / "skills" / "cline-config-delegation" / "SKILL.md").read_text()
         self.assertIn("## architecture-reviewer", delegation)
