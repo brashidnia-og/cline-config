@@ -1,0 +1,24 @@
+{
+  "skill_name": "agent-skill-evaluation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Does this new tool-efficiency skill make local Qwen 27B faster and more accurate?",
+      "expected_output": "Controlled baseline/candidate design; task success, errors, total cost/time and multiple runs; no fabricated measurements.",
+      "assertions": [
+        "Paired evaluation",
+        "Outcome metric",
+        "No overclaim"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The eval JSON exists and all entries pass parsing; claim 20% better.",
+      "expected_output": "Reject quality claim without actual run results.",
+      "assertions": [
+        "Separates static tests from eval",
+        "No invented gain"
+      ]
+    }
+  ]
+}

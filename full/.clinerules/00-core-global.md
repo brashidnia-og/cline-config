@@ -48,8 +48,6 @@ When a loaded skill has a **Subagent fan-out** section, follow it under Delegate
 
 **Model and effort selection.** An explicitly selected model or reasoning effort for a worker wins over routing heuristics. If the harness cannot honor it (no model/effort setting, no delegation tool), report the limitation and keep the work on the primary — never silently substitute a different model.
 
-For OpenCode Task routing, model selection is through a named agent's configured model, not text in the task prompt. Follow `subagent-model-routing` to resolve OpenCode display names to exact IDs and select a matching model-bound agent; do not silently fall back when its binding is missing.
-
 **Unavailable roles.** If a referenced named role is not installed or its delegation tool is unavailable, the primary performs that step itself (Solo for that step); do not fail the task or invent the missing role.
 
 When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build tools) instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with `set -o pipefail`, and report its exit status and log path.
@@ -59,6 +57,16 @@ When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build t
 For non-trivial work use one sequence: **mode → inspect → task contract → act → verify → universal gate**.
 
 Compilation and tests are allowed only via repository-documented scripts/tasks after inspecting their definitions. Never invent install, deploy, or publish scripts.
+
+For OpenCode V2, exact worker model selection requires a configured model-bound agent, not a model name in the task text. The opt-in setup is documented in `subagent-model-routing`; never silently substitute a model.
+
+## Requirements-to-build routing
+
+For a vague feature or ticket, invoke `define-task-requirements` before making an implementation plan. For a new product or large multi-feature MVP, invoke `define-product-requirements` and compose feature contracts. When handed a READY specification and asked to implement continuously, invoke `build-from-requirements` (alias `product-builder`); use acceptance evidence and durable phase handoffs. DRAFT specifications with unresolved high-impact product choices must not be treated as permission to guess. Do not make a routine, already-defined edit depend on a formal PRD.
+
+## Targeted research, decisions and explanations
+
+For consequential unknowns, load `evidence-driven-research` rather than speculative broad context dumps. For material choices use `engineering-decision-analysis` (hard constraints, alternatives, opportunity cost, reversibility, evidence and disconfirming tests); skip costly deliberation for trivial reversible changes. When users ask "how does X work?", "how will Y work?", "ELI5" or "TLDR", use `explain-clearly`: answer first in plain English, then explain causal steps and give a concrete scenario or clearly bounded analogy. Keep user-facing updates no-fluff and truthful; do not claim proposed behavior already exists. `agent-skill-evaluation` is for benchmarking skills/models, not routine feature execution.
 
 ## Task contract
 

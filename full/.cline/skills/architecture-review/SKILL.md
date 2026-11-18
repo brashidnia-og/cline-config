@@ -95,6 +95,8 @@ Define observability:
 - traces where cross-boundary diagnosis matters,
 - alerts and operational failure modes.
 
+For consequential technology, data, operational or migration alternatives, use `engineering-decision-analysis` to frame hard constraints, short/long-term consequences, opportunity cost and reversibility. Use `evidence-driven-research` for version-specific or external evidence, not to substitute external docs for repository behavior. Avoid redundant option comparisons if `design-for-change` already documented the decision.
+
 ## 7. Compare alternatives
 
 For consequential decisions compare at least two viable options unless one is clearly forced by existing architecture/requirements.
@@ -129,7 +131,7 @@ Produce an ordered plan that surfaces risk early. For each phase identify:
 - tests/validation,
 - migration/deployment/rollback considerations.
 
-Avoid vague steps such as “update backend” or “add tests”. Make each step executable by another engineer. When the user needs one document an implementing agent can execute, record that handoff with `ai-ready-plan` instead of a second plan format. If the request is still vague, that skill interviews first.
+Avoid vague steps such as “update backend” or “add tests”. Make each step executable by another engineer.
 
 ## 10. Final gate
 

@@ -50,6 +50,10 @@ Genuine algorithmic/adapter variation behind a meaningful common contract → lo
 
 Independently composable behavior around the same contract → use `decorator-pattern` to assess fit and resolve wrapper contracts, ownership, and ordering, then return here.
 
+## Decision-analysis routing
+
+If a material architectural choice remains after repository inspection, use `engineering-decision-analysis` once to compare viable alternatives including the smallest existing solution, opportunity costs, reversibility and short/long-term consequences. Use `evidence-driven-research` only when a consequential fact is unknown. Keep this separate from design-for-change's contract ownership and bounded implementation handoff; skip a second matrix for an already settled or trivial choice.
+
 ## 4. Choose and state the design
 - Choose the smallest coherent design that preserves the real invariants; never the most sophisticated or familiar pattern by default.
 - State: public contracts, ownership, the construction/dispatch boundary, failure/cancellation behavior, and validation.

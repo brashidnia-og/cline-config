@@ -19,7 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MARKER = "<!-- cline-config:model-agent:v1 -->"
 NAME_LIMIT = 64
 VALID_AGENT_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*/[A-Za-z0-9][A-Za-z0-9._+-]*$")
+# OpenCode V2 may expose a model variant with a #variant suffix.
+MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*/[A-Za-z0-9][A-Za-z0-9._+-]*(?:#[A-Za-z0-9][A-Za-z0-9._+-]*)?$")
 
 
 @dataclass(frozen=True)
@@ -103,7 +104,9 @@ def parse_verbose_models(output: str) -> list[Model]:
         if not all(isinstance(value, str) and value.strip() for value in (provider, model_id, name)):
             raise SyncError(f"metadata for model {line!r} needs non-empty providerID, id, and name")
         canonical_id = f"{provider}/{model_id}"
-        if canonical_id != line:
+        # Some OpenCode variant entries use the base model ID in metadata,
+        # while the list entry itself includes a #variant suffix.
+        if canonical_id != line and not line.startswith(canonical_id + "#"):
             raise SyncError(f"model ID {line!r} disagrees with metadata ID {canonical_id!r}")
         if line not in seen:
             models.append(Model(id=line, name=name.strip()))
@@ -202,19 +205,45 @@ def yaml_quote(value: str) -> str:
 
 def render_agent(role: AgentRole, model: Model) -> tuple[str, str]:
     name = agent_name(role, model)
-    edit = "deny" if role.readonly else "allow"
-    bash = "deny" if role.readonly or not role.shell else "allow"
-    description = f"{role.id} — {role.description} using {model.name} ({model.id})"
+    description = f"{role.id} — {role.description} [model: {model.name} ({model.id})]"
     lines = [
         "---",
         f"description: {yaml_quote(description)}",
         "mode: subagent",
         f"model: {yaml_quote(model.id)}",
-        "hidden: true",
-        "permission:",
-        f"  edit: {edit}",
-        f"  bash: {bash}",
-        "  task: deny",
+        # A hidden agent is omitted from OpenCode's subagent selection
+        # catalog. Model-bound aliases must be visible to be routable.
+        "hidden: false",
+        "permissions:",
+    ]
+    # OpenCode V2: ordered action/resource/effect rules, not V1
+    # permission.edit/bash/task. Restrict only capabilities disallowed
+    # by the canonical role; defaults are otherwise supplied by OpenCode.
+    if role.readonly:
+        lines.extend([
+            "  - action: edit",
+            '    resource: "*"',
+            "    effect: deny",
+        ])
+    if not role.shell:
+        lines.extend([
+            "  - action: shell",
+            '    resource: "*"',
+            "    effect: deny",
+        ])
+    # Task workers should not re-delegate by default; the orchestrator
+    # role is the one whose purpose explicitly requires delegation.
+    if role.id != "orchestrator":
+        lines.extend([
+            "  - action: subagent",
+            '    resource: "*"',
+            "    effect: deny",
+        ])
+    # No empty permissions list: the orchestrator with both capabilities
+    # allowed should inherit the harness defaults.
+    if lines[-1] == "permissions:":
+        lines.pop()
+    lines.extend([
         "---",
         "",
         MARKER,
@@ -222,7 +251,7 @@ def render_agent(role: AgentRole, model: Model) -> tuple[str, str]:
         "",
         role.prompt.rstrip(),
         "",
-    ]
+    ])
     return name, "\n".join(lines)
 
 
@@ -333,7 +362,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--role", default="scout", help="installed catalog role (default: scout)")
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--model", help="exact model ID or display name, e.g. 'GPT-6 Astra'")
-    selection.add_argument("--all-models", action="store_true", help="bind the role to every discovered model")
+    selection.add_argument("--all-models", action="store_true", help="bind the role to EVERY discovered model (creates many visible agents; prefer --model)")
     parser.add_argument(
         "--prune-stale",
         action="store_true",
@@ -350,7 +379,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.list and (args.model is not None or args.all_models or args.prune_stale):
         parser.error("--list cannot be combined with model selection or --prune-stale")
     if not args.list and args.model is None and not args.all_models:
-        parser.error("choose --model MODEL or --all-models")
+        parser.error("choose --model MODEL or --all-models (prefer a small explicit set)")
     if args.prune_stale and not args.all_models:
         parser.error("--prune-stale requires --all-models")
     try:

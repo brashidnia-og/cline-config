@@ -80,15 +80,41 @@ class AgentSyncTests(unittest.TestCase):
         self.assertIn('model: "openai/gpt-6-astra"', content)
         expected_description = (
             "scout — Researches external docs, dependencies, and upstream implementations. "
-            "Use when the answer lives outside the local codebase. using GPT-6 Astra (openai/gpt-6-astra)"
+            "Use when the answer lives outside the local codebase. "
+            "[model: GPT-6 Astra (openai/gpt-6-astra)]"
         )
         self.assertIn(f"description: {model_agents.yaml_quote(expected_description)}", content)
-        self.assertIn("hidden: true", content)
-        self.assertIn("edit: deny", content)
-        self.assertIn("bash: deny", content)
-        self.assertIn("task: deny", content)
+        self.assertIn("hidden: false", content)
+        self.assertIn("permissions:", content)
+        self.assertIn("  - action: edit", content)
+        self.assertIn("  - action: shell", content)
+        self.assertIn("  - action: subagent", content)
+        self.assertIn("    effect: deny", content)
+        self.assertNotIn("\npermission:\n", content)
+        self.assertNotIn("bash: deny", content)
         self.assertIn(self.scout.prompt, content)
         self.assertIn(model_agents.MARKER, content)
+
+    def test_general_worker_may_edit_but_cannot_use_shell_or_redelegate(self):
+        general = model_agents.read_role("general", "full")
+        _, content = model_agents.render_agent(general, self.luna)
+        self.assertNotIn("  - action: edit", content)
+        self.assertIn("  - action: shell", content)
+        self.assertIn("  - action: subagent", content)
+
+    def test_orchestrator_may_delegate_but_may_not_edit_or_shell(self):
+        orchestrator = model_agents.read_role("orchestrator", "full")
+        _, content = model_agents.render_agent(orchestrator, self.luna)
+        self.assertIn("  - action: edit", content)
+        self.assertIn("  - action: shell", content)
+        self.assertNotIn("  - action: subagent", content)
+
+    def test_variant_id_can_be_parsed_without_conflating_model(self):
+        raw = "local-llm/qwen-flash#4096\n" + json.dumps(
+            {"providerID": "local-llm", "id": "qwen-flash", "name": "Qwen Flash"}
+        )
+        models = model_agents.parse_verbose_models(raw)
+        self.assertEqual("local-llm/qwen-flash#4096", models[0].id)
 
     def test_dry_run_does_not_create_directory_or_files(self):
         changed, unchanged = model_agents.sync_agents(
