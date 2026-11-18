@@ -145,24 +145,18 @@ def render_opencode(agent_id: str, meta: dict, body: str) -> str:
     readonly = bool(meta.get("readonly", True))
     shell = bool(meta.get("shell", False))
     desc = meta.get("description") or agent_id
-    edit = "deny" if readonly else "allow"
-    bash = "allow" if shell else ("deny" if readonly else "allow")
-    # Write-capable agents still get bash allow so they can run needed commands.
-    if not readonly and not shell:
-        bash = "allow"
-    lines = [
-        "---",
-        f"description: {desc}",
-        "mode: subagent",
-        "permission:",
-        f"  edit: {edit}",
-        f"  bash: {bash}",
-        "---",
-        "",
-        f"<!-- {marker} -->",
-        "",
-        body.rstrip() + "\n",
-    ]
+    # OpenCode V2 uses ordered 'permissions' rules, not V1 permission.edit/bash.
+    # A role's shell=false must deny shell even when that role can edit files.
+    lines = ["---", f"description: {desc}", "mode: subagent"]
+    rules = []
+    if readonly:
+        rules.append("  - action: edit\n    resource: \"*\"\n    effect: deny")
+    if not shell:
+        rules.append("  - action: shell\n    resource: \"*\"\n    effect: deny")
+    if rules:
+        lines.append("permissions:")
+        lines.extend(rules)
+    lines.extend(["---", "", f"<!-- {marker} -->", "", body.rstrip() + "\n"])
     return "\n".join(lines)
 
 def render_cursor(agent_id: str, meta: dict, body: str) -> str:

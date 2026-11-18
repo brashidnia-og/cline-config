@@ -19,6 +19,8 @@ Pay special attention to *hidden product requirements* absent from a happy-path 
 
 Do not fabricate consent or decide irreversible/high-impact product behavior. If unavailable, produce `DRAFT` plus concrete blocking decisions; a product that cannot pass the readiness gate is not autonomous-build ready.
 
+For major scope, platform, migration or architecture choices, use `engineering-decision-analysis` to compare viable paths and distinguish owner-approved decisions from reversible engineering defaults. When existing solutions, reference products or library behavior matter, invoke `evidence-driven-research` first. If the user asks how a proposed flow works, use `explain-clearly` for a TLDR and realistic example. Do not force matrices or exhaustive research for obvious, reversible decisions.
+
 ## 3. Decompose into feature contracts
 Write an umbrella `product/work/requirements/YYYYMMDDTHHMMSSZ-product-name.md` plus distinct, timestamped `product/work/requirements/YYYYMMDDTHHMMSSZ-feature-name.md` files (unless the repo already has an equivalent tracked convention). Follow the shared [Git-native workspace reference](../define-task-requirements/references/git-workspace.md) for statuses, links, dependency references and stable names. Each feature is authored with the `define-task-requirements` contract and independently testable acceptance IDs. Include cross-feature interface and state ownership, startup/shutdown, lifecycle, versioned data, integration failure paths and compatibility. Provide an ordered, acyclic feature index with dependencies; separate MVP from deferred work. For multi-repo products explicitly name canonical ownership, interface commitments, build order, integration repository and compatibility testing.
 

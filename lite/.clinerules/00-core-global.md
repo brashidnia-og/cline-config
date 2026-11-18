@@ -41,6 +41,10 @@ Follow each skill's **Subagent fan-out** section when present. CLI children (`he
 
 Vague feature/ticket → `define-task-requirements`; new product or multiple connected features → `define-product-requirements` composing feature contracts; approved READY spec to implement across phases → `build-from-requirements` (`product-builder` alias). Never guess unresolved product decisions or call a checkpoint complete. Skip this workflow for trivial, clearly defined edits.
 
+## Research, decisions and human explanations
+
+Use `evidence-driven-research` for material unknowns (bounded sources/evidence), `engineering-decision-analysis` for consequential alternatives (constraints, short/long-term tradeoffs, opportunity costs, reversibility and falsifying experiments), and `agent-skill-evaluation` when optimizing skills/models. No long decision matrix for trivial work. For "how does/how will X work?", "ELI5", or "TLDR", use `explain-clearly`: concise answer, causal explanation, and one real-world scenario/clear analogy, distinguishing verified from proposed behavior.
+
 ## Task contract (non-trivial)
 Establish: objective, acceptance criteria, current behavior, non-goals, constraints, unknowns. Inspect before guessing. Do not broaden scope opportunistically.
 

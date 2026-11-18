@@ -38,6 +38,10 @@ CURSOR_SHARED_SKILLS=(
   define-product-requirements
   build-from-requirements
   product-builder
+  evidence-driven-research
+  engineering-decision-analysis
+  agent-skill-evaluation
+  explain-clearly
 )
 GAME_SKILL_MARKER=".cline-config-managed"
 
