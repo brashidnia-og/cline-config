@@ -13,7 +13,34 @@ Purpose: make complex systems genuinely understandable **without losing critical
 3. **Concrete example:** one realistic scenario grounded in known system behavior, written for a non-expert. When a direct example would be misleading or impossible, use an analogy and clearly label the analogy's limits.
 4. **Important caveat:** at most 1–2 high-impact constraints/unknowns when material. Don't bury a blocker, side effect or security caveat in an upbeat summary.
 
-Explain unfamiliar terms at first use, avoid unexplained acronyms and long paragraphs. Use active voice, ordinary verbs and specific nouns. Prefer one example over an elaborate list. For "TLDR only", answer even shorter; for deep technical requests, expand after the plain-English overview. Do not talk down to the user or sacrifice nuance for a cute analogy.
+Explain unfamiliar terms at first use, avoid unexplained acronyms and long paragraphs. Use active voice, ordinary verbs and specific nouns. For one mechanism, prefer one example over an elaborate list; **for multiple compared options, give one parallel example per option**. For "TLDR only", answer even shorter; for deep technical requests, expand after the plain-English overview. Do not talk down to the user or sacrifice nuance for a cute analogy.
+
+## Explaining and comparing multiple options
+
+When the user asks "how would A vs B work?", "what's different?", "what's similar?" or is choosing between proposed designs, explain **each option in the same real-world scenario**. Do not collapse alternatives into a single analogy or list abstract pros/cons without showing what actually happens.
+
+1. **TL;DR:** State the main practical difference in one or two sentences; add a recommendation only if supported by evidence and the user's goals.
+2. **Shared situation:** Choose one concrete, realistic scenario with the same actors, input, constraints and desired outcome for every option. If no direct scenario works, use parallel analogies and label their limits.
+3. **Option A:** Explain in layman's terms what starts the action, the sequence, what the user experiences, and one material tradeoff.
+4. **Option B (and each additional option):** Walk through that **same** situation with equal clarity and comparable detail, not a different example that unfairly favors it.
+5. **How they are similar / how they differ:** State the common purpose, shared steps and guarantees, then the key difference in behavior, complexity, cost, timing, risk or reversibility, as relevant. Use a tiny table when it makes multiple dimensions easier to scan.
+6. **Which to choose:** Connect the distinction to the user's actual priorities and evidence. If performance or behavior is unverified, say what test would decide; never invent numeric benefits.
+
+Keep comparisons proportionate: two options usually need only two short scenarios, a similarities/differences summary and a one-line takeaway. Don't use an analogy instead of a concrete case when a concrete case is available. Keep hypothetical and existing behavior clearly labeled.
+
+### Example: event processing in a phone game (illustrative designs, not measured outcomes)
+
+**TL;DR:** Both designs can deliver the same opponent move. They differ in when the game notices an arriving message.
+
+**Shared scenario:** Two people play a phone game; one moves their character, and the other phone receives that move between display updates.
+
+**Option A — Polling:** The game checks its inbox on each scheduled game update. If the move arrives just after a check, it sits in the inbox until the next check—like checking the mailbox every morning.
+
+**Option B — Event-driven:** A network handler is alerted when the move arrives and can pass it into a safe queue for the game to apply at the appropriate point—like a doorbell alerting you that mail arrived. The game may still apply the move on its next simulation update.
+
+**Similar:** Both need network transport, message validation, ordered game-state application and recovery from failures. Neither by itself guarantees lower end-to-end latency.
+
+**Different:** Polling couples when messages are *noticed* to scheduled checks; event-driven reception can notice arrivals sooner but needs explicit concurrency and queue ownership. The right choice depends on measured delay, complexity and reliability.
 
 ## Truth boundary
 Inspect code or confirmed design when describing an actual implementation. Distinguish **currently works** from **proposed behavior**. Never invent a runtime sequence, performance claim, implemented feature, test result, or tool capability. If evidence is missing, say what is known and what would verify the rest. Avoid turning an explicit hypothetical into a factual assertion.

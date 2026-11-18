@@ -27,6 +27,29 @@
       "assertions": [
         "Honors format over skill"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "How would physics-tick polling versus event-driven receiving work in a two-phone multiplayer game? Explain in plain English with examples for both, and tell me what is the same and what is different.",
+      "expected_output": "TLDR then one parallel concrete two-phone scenario for polling and event-driven receive, clear shared behaviors and practical differences, no invented latency figures.",
+      "assertions": [
+        "Same scenario and actors for both choices",
+        "Each option gets its own plain-English causal walkthrough",
+        "Explicit similarities and differences",
+        "No fabricated measured performance",
+        "Concise practical takeaway"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Explain to a beginner how retry-with-backoff versus queue-for-later would handle sending a notification when the network is offline.",
+      "expected_output": "Shared real-world offline scenario; distinct example for each alternative, common goal, difference in when delivery is retried and how work is stored, explicit uncertainty/guarantees.",
+      "assertions": [
+        "Parallel scenario per option",
+        "Common goal and mechanisms named",
+        "Differences made accessible",
+        "No inaccurate delivery guarantees"
+      ]
     }
   ]
 }

@@ -229,6 +229,13 @@ class SourceTreeTests(unittest.TestCase):
             explanation = (root / "explain-clearly" / "SKILL.md").read_text()
             self.assertIn("How it works", explanation)
             self.assertIn("Concrete example", explanation)
+            for term in ("Explaining and comparing multiple options", "Shared situation",
+                         "Option A", "Option B", "How they are similar / how they differ"):
+                self.assertIn(term, explanation)
+            explain_evals = json.loads((root / "explain-clearly" / "evals" / "evals.json").read_text())
+            self.assertGreaterEqual(len(explain_evals["evals"]), 5)
+            self.assertTrue(any("similarities and differences" in " ".join(e["assertions"]).lower()
+                                for e in explain_evals["evals"]))
             decision = (root / "engineering-decision-analysis" / "SKILL.md").read_text()
             self.assertIn("Opportunity cost", decision)
             self.assertIn("reversibility", decision.lower())
