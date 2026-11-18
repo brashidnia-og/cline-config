@@ -15,6 +15,12 @@ Treat performance as a measured gameplay constraint. Use the engine skill and it
 4. Change one cause at a time. Keep a correctness invariant and a visual/gameplay quality check beside the performance target. Prefer eliminating unnecessary work, reducing frequency or scope, batching/reuse, and fitting assets to visible screen size before broad architecture changes.
 5. Repeat the same scenario and compare numbers. If improvement is below measurement noise or harms gameplay/readability, revert or revise. Test more than one relevant device/quality tier when the game targets varied hardware.
 
+## Fixed-step and sustained-sampling validity
+
+For Godot benchmarks, verify that explicit simulation steps agree with the engine delta used by physics bodies such as `CharacterBody3D.move_and_slide()`. Changing `Engine.time_scale` can alter the engine delta even when a manual callback argument remains fixed, invalidating movement and CPU comparisons. Use the project's documented harness (and version-supported `--fixed-fps` when appropriate); assert actual physics delta and step counts. Distinguish world orchestration cost from actual pawn/actor-step cost.
+
+For sustained power/thermal measurements, include initial and full-duration endpoint samples. Record actual per-device elapsed times, skip missed intervals instead of emitting catch-up bursts, and report any shorter observed window explicitly. Keep unavailable OEM measurements unmeasured rather than substituting zero.
+
 ## Deliverable
 
 Write a short [performance report](references/performance-report-template.md): scenario and device, build/settings, baseline, bottleneck evidence, change, after measurements, correctness/visual checks, and remaining risks. If a target device is unavailable, label the result as desktop/editor evidence and leave device performance unverified.
