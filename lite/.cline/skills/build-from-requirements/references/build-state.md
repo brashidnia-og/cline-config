@@ -3,7 +3,7 @@
 Use project conventions first. A recommended layout for a run is:
 
 ```text
-.ai/work/build-runs/<requirements-id>/
+product/work/build-runs/<requirements-id>/
   STATE.md         # concise single-writer current state and next action
   PHASE_LOG.md     # append milestone outcomes; no raw full logs
   ACCEPTANCE.md    # one row per AC ID; status and evidence
@@ -12,7 +12,7 @@ Use project conventions first. A recommended layout for a run is:
   # raw logs belong in ignored .ai/local/; do not commit secrets
 ```
 
-By default `.ai/work/` is tracked; verify it is not ignored and the status/handoff summaries are committed before expecting another checkout/agent to see them. If the repository already has a tracked alternative, use that consistently. Keep local logs, secrets and large diagnostic files out of Git. Never overwrite user notes or commit secrets/logs. Only the primary writes canonical ledger files.
+By default `product/work/` is tracked; verify it is not ignored and the status/handoff summaries are committed before expecting another checkout/agent to see them. If the repository already has a tracked alternative, use that consistently. Keep local logs, secrets and large diagnostic files out of Git. Never overwrite user notes or commit secrets/logs. Only the primary writes canonical ledger files.
 
 ## STATE.md must contain
 - Spec path, ID, **requirements_status** and **delivery_status**, known commit/hash; repo and exact branch/HEAD/worktree.

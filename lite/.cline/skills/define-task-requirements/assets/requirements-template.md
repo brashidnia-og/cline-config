@@ -1,6 +1,6 @@
 # Task / feature requirements template
 
-Use this as a **structure**, not boilerplate to leave unfilled. The final document must satisfy the requirements contract and Git-workspace reference. Replace all placeholders or explain non-applicability. Name it `YYYYMMDDTHHMMSSZ-<task-name>.md` in `.ai/work/requirements/`.
+Use this as a **structure**, not boilerplate to leave unfilled. The final document must satisfy the requirements contract and Git-workspace reference. Replace all placeholders or explain non-applicability. Name it `YYYYMMDDTHHMMSSZ-<task-name>.md` in `product/work/requirements/`.
 
 ```markdown
 ---

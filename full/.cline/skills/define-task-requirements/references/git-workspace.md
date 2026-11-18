@@ -1,12 +1,12 @@
 # Git-native requirements workspace (v1)
 
-**Use this when requirements need to survive across agents, branches or sessions.** Keep the source of truth inside the target Git repository, without assuming Shortcut, GitHub Issues, Notion or a third-party task service exists.
+**Use this when requirements need to survive across agents, branches or sessions.** The default `product/work/` is a **committed, reviewable project artifact**, not an ignored agent scratch directory. Reserve `.ai/` for transient/private analysis and logs. Keep the source of truth inside the target Git repository, without assuming Shortcut, GitHub Issues, Notion or a third-party task service exists.
 
 ## Directory and naming
 
 ```text
 <target-repo>/
-  .ai/work/
+  product/work/
     README.md                         # copy concise process rules and ownership
     requirements/
       20261118T024512Z-device-session-recovery.md
@@ -20,7 +20,7 @@
         HANDOFF.md
 ```
 
-Create `.ai/work/requirements/` and `.ai/work/build-runs/` only when there is substantial or persistent work. The parent repository's `.gitignore` must NOT ignore `.ai/work/`—check before writing, and do not override an intentional ignore without approval. Keep transient logs, secrets and private diagnostics outside tracked files (e.g. ignored `.ai/local/`). If a repo already has a tracked, equivalent documented workflow, adapt rather than creating a duplicate system.
+Create `product/work/requirements/` and `product/work/build-runs/` only when there is substantial or persistent work. The parent repository's `.gitignore` must NOT ignore `product/work/`—check before writing, and do not override an intentional ignore without approval. Keep transient logs, secrets and private diagnostics outside tracked files (e.g. ignored `.ai/local/`). If a repo already has a tracked, equivalent documented workflow, adapt rather than creating a duplicate system.
 
 **File name:** `YYYYMMDDTHHMMSSZ-kebab-case-task-name.md`, UTC, using a source-verified clock (e.g. `date -u +%Y%m%dT%H%M%SZ` if shell is available). If no clock is accessible, request/gather a trusted timestamp, rather than pretending to know UTC. Sanitize the slug to ASCII lowercase letters, digits and dashes. If a filename already exists, append an incrementing suffix before `.md`. Never rename a tracked requirement because its status changed; links and IDs remain stable. Product PRDs and feature specifications **both** follow this naming pattern. Link features from the product PRD's feature index using relative filenames. Cross-repository products should have one canonical PRD in the coordinator repo and feature files near their owning code, with stable URLs/refs, avoiding competing masters.
 

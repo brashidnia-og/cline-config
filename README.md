@@ -9,6 +9,8 @@ Shared engineering rules, skills, agents, and MCP configuration for **Cline, Ope
 
 ## Requirements discovery and autonomous product building
 
+The tracked Git-native default for specifications, status history, branch/PR references, and handoffs is `product/work/` (never gitignored); reserve `.ai/` for local scratch and transient logs. Respect an existing project-specific equivalent rather than creating duplicate trackers.
+
 The profiles include three composable, builder-oriented skills (plus one short alias), designed primarily for **Hermes** and equally usable in Cline, OpenCode, Cursor, Codex and Claude Code:
 
 | Skill | Responsibility | Deliverable |
@@ -24,8 +26,8 @@ Example Hermes workflow after installing the profile:
 
 ```text
 /define-product-requirements Define a router-free multiplayer game platform and interview me for missing product decisions.
-/build-from-requirements @.ai/work/requirements/20261118T024512Z-router-free-platform.md
-/product-builder @.ai/work/requirements/20261118T024512Z-router-free-platform.md
+/build-from-requirements @product/work/requirements/20261118T024512Z-router-free-platform.md
+/product-builder @product/work/requirements/20261118T024512Z-router-free-platform.md
 ```
 
 Hermes exposes installed skills as slash commands; the repo is a source, not an already-installed runtime. Re-run the profile installer and verify skills are discoverable. Autonomous continuation is limited by actual session/tool capabilities. A handoff enables another session to resume, but does not itself keep a timed-out process running or authorize deployment/destructive operations.

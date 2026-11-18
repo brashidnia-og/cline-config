@@ -11,9 +11,9 @@ description: Autonomously implement and verify a READY task specification or mul
 Examples (Hermes installed skills are slash commands; other tools may require an explicit skill invocation):
 
 ```text
-/build-from-requirements @.ai/work/requirements/20261118T025017Z-my-product.md
-/product-builder @.ai/work/requirements/20261118T025017Z-my-product.md
-/build-from-requirements @.ai/work/requirements/20261118T024512Z-my-feature.md
+/build-from-requirements @product/work/requirements/20261118T025017Z-my-product.md
+/product-builder @product/work/requirements/20261118T025017Z-my-product.md
+/build-from-requirements @product/work/requirements/20261118T024512Z-my-feature.md
 ```
 
 Resolve `@path` (or plain path) relative to the current repository; never mistake a chat attachment token for a filesystem path without verifying it. Inspect the document, all linked in-scope feature specs, code, version/control state, tests, tools and safety constraints. If `requirements_status` is not `READY` or `delivery_status` is not `READY TO BUILD` / a verified resumable in-flight state, **do not interpret missing product decisions as permission to invent them**; report exact blockers, optionally implement separable READY features, or hand back to `define-task-requirements` / `define-product-requirements`. Recheck that requirements match current repo reality.
@@ -21,7 +21,7 @@ Resolve `@path` (or plain path) relative to the current repository; never mistak
 ## 1. Build the execution graph
 Map the PRD's dependency order, interface ownership and acceptance IDs into independently verifiable milestones. One task owns one bounded change and a validation target. Plan sequence, critical path, parallel read-only research, per-phase tests, compatibility, rollback and integration; prefer existing repo conventions and scripts. Use `design-for-change` for real design choices and its versioned worker handoff contract. Do not redesign approved product behavior; choose the smallest coherent implementation consistent with it.
 
-Use the tracked `.ai/work/build-runs/<requirements-id>/` by default (or an equivalent existing tracked project system), with the canonical requirement and delivery status recorded in the dated spec file. Maintain real Git branch/PR links and a status history in `## Delivery tracking`. Keep transient logs in ignored `.ai/local/` or the repo's established ignored logs directory; the run's status/acceptance/handoff summaries must be visible to the next agent through Git. Never create an invisible record that a future session cannot locate. Record source spec path and hash/revision if available, branch/repo identity, milestone DAG, acceptance coverage, evidence and a single next action.
+Use the tracked `product/work/build-runs/<requirements-id>/` by default (or an equivalent existing tracked project system), with the canonical requirement and delivery status recorded in the dated spec file. Maintain real Git branch/PR links and a status history in `## Delivery tracking`. Keep transient logs in ignored `.ai/local/` or the repo's established ignored logs directory; the run's status/acceptance/handoff summaries must be visible to the next agent through Git. Never create an invisible record that a future session cannot locate. Record source spec path and hash/revision if available, branch/repo identity, milestone DAG, acceptance coverage, evidence and a single next action.
 
 ## 2. Autonomous milestone loop
 Repeat until **every in-scope acceptance ID is verified**, a genuine blocker applies to all remaining work, or the current execution environment stops further tool use:

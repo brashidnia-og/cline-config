@@ -211,7 +211,7 @@ class SourceTreeTests(unittest.TestCase):
             builder = (root / "build-from-requirements" / "SKILL.md").read_text()
             alias = (root / "product-builder" / "SKILL.md").read_text()
             self.assertIn("BLOCKING_PRODUCT_DECISION", task)
-            self.assertIn(".ai/work/requirements/", task)
+            self.assertIn("product/work/requirements/", task)
             self.assertIn("define-task-requirements", product)
             self.assertIn("all in-scope MVP features are READY", product)
             for term in ("CHECKPOINT AND CONTINUE", "independent", "UNVERIFIED",

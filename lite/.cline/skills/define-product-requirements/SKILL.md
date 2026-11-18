@@ -20,7 +20,7 @@ Pay special attention to *hidden product requirements* absent from a happy-path 
 Do not fabricate consent or decide irreversible/high-impact product behavior. If unavailable, produce `DRAFT` plus concrete blocking decisions; a product that cannot pass the readiness gate is not autonomous-build ready.
 
 ## 3. Decompose into feature contracts
-Write an umbrella `.ai/work/requirements/YYYYMMDDTHHMMSSZ-product-name.md` plus distinct, timestamped `.ai/work/requirements/YYYYMMDDTHHMMSSZ-feature-name.md` files (unless the repo already has an equivalent tracked convention). Follow the shared [Git-native workspace reference](../define-task-requirements/references/git-workspace.md) for statuses, links, dependency references and stable names. Each feature is authored with the `define-task-requirements` contract and independently testable acceptance IDs. Include cross-feature interface and state ownership, startup/shutdown, lifecycle, versioned data, integration failure paths and compatibility. Provide an ordered, acyclic feature index with dependencies; separate MVP from deferred work. For multi-repo products explicitly name canonical ownership, interface commitments, build order, integration repository and compatibility testing.
+Write an umbrella `product/work/requirements/YYYYMMDDTHHMMSSZ-product-name.md` plus distinct, timestamped `product/work/requirements/YYYYMMDDTHHMMSSZ-feature-name.md` files (unless the repo already has an equivalent tracked convention). Follow the shared [Git-native workspace reference](../define-task-requirements/references/git-workspace.md) for statuses, links, dependency references and stable names. Each feature is authored with the `define-task-requirements` contract and independently testable acceptance IDs. Include cross-feature interface and state ownership, startup/shutdown, lifecycle, versioned data, integration failure paths and compatibility. Provide an ordered, acyclic feature index with dependencies; separate MVP from deferred work. For multi-repo products explicitly name canonical ownership, interface commitments, build order, integration repository and compatibility testing.
 
 Define end-to-end acceptance in the **umbrella PRD** (not merely feature tests): representative complete journeys, security boundaries, performance on target devices, recovery, migration, rollout and rollback, plus what evidence proves an integrated product works.
 
@@ -33,7 +33,7 @@ The PRD receives `requirements_status: READY` and `delivery_status: "READY TO BU
 Return one entry point: the dated product requirements file, with `requirements_status: READY`, `delivery_status: "READY TO BUILD"`, linked feature specifications, decisions, risks, evidence, real branch/PR references when present and milestone order. The user should be able to invoke:
 
 ```text
-/build-from-requirements @.ai/work/requirements/<UTC-timestamp>-product-name.md
+/build-from-requirements @product/work/requirements/<UTC-timestamp>-product-name.md
 ```
 
 or the `product-builder` alias. The builder should not have to clarify the *intended product*. If evidence changes or an unforeseen significant product choice emerges, it must raise a scoped change request and stop only affected work rather than silently guessing. Never claim a DRAFT is READY just to permit autonomous execution.
