@@ -5,10 +5,14 @@ on:
   push:
     branches:
       - main
-      - brashidnia/new-skills
 
 permissions:
   contents: read
+
+# A PR push has a single run; updates cancel stale runs for the same PR.
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   python:
