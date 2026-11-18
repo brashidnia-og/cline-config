@@ -1,0 +1,58 @@
+name: Validate skills and installers
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - brashidnia/new-skills
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }} / tests and installers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile source and tests
+        run: |
+          python -m compileall -q bin tests
+          python -m py_compile full/.cline/skills/android-wireless-adb/scripts/discover_wireless_devices.py
+          python -m py_compile lite/.cline/skills/android-wireless-adb/scripts/discover_wireless_devices.py
+      - name: Run offline test suite
+        run: python -m unittest discover -s tests -v
+        env:
+          LLM_URL: http://127.0.0.1:1/v1
+      - name: Dry-run full and lite installers
+        run: |
+          bash ./bin/install-full.sh --dry-run --skip-mcp --skip-opencode
+          bash ./bin/install-lite.sh --dry-run --skip-mcp --skip-opencode
+
+  opencode-v2:
+    name: OpenCode V2 agent discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install official OpenCode V2 CLI
+        run: npm install --global @opencode/cli
+      - name: Confirm OpenCode version
+        run: opencode --version
+      - name: Validate generated model-bound agents in OpenCode V2
+        run: python -m unittest discover -s tests -p 'test_opencode_model_agents.py' -v

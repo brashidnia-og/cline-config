@@ -47,6 +47,10 @@ Four additional focused skills are shared by full/lite profiles:
 
 Use these **only when triggered**. The first two support requirements discovery and design choices; evaluation is for skill/harness improvements, not routine code edits. Clear explanation affects user-facing communication, not acceptance evidence or runtime permissions. These skills were authored for this repository using public skill-creation and research ideas, not copied from third-party sources. See [workflow research](docs/requirements-workflow.md).
 
+## Automated validation
+
+GitHub Actions runs the Python unit/integration suite and installer dry runs on Python 3.11–3.13 for PRs and pushes, and verifies generated agent discovery against the official OpenCode V2 CLI. See [`.github/workflows/validate.yml`](.github/workflows/validate.yml). Parser/fixture tests and agent registration checks do not prove real Android wireless connectivity, live LLM routing/permissions at inference time, or performance improvements; those require explicit hardware/model acceptance evidence.
+
 ## Complementary PR #2 capabilities
 
 **Wireless Android hardware testing:** The optional `android-wireless-adb` skill (full/lite) discovers nearby Android debugging devices through adb/mDNS, deduplicates alternate network routes, and supplies precise serials for the project's own hardware tests. See the [skill](full/.cline/skills/android-wireless-adb/SKILL.md). Pairing requires the user's actual code; unit tests alone do not validate live devices.
