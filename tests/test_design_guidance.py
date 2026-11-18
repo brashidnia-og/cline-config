@@ -45,27 +45,32 @@ FULL_SKILLS = {
     "persistent-analysis-store", "polymorphism-and-strategy",
     "security-audit-core", "smart-contract-security-audit", "state-machine-design",
     "subagent-model-routing", "test-engineering", "vulnerability-research",
+    "define-task-requirements", "define-product-requirements",
+    "build-from-requirements", "product-builder",
 } | PATTERN_SKILLS
 LITE_SKILLS = {
     "change-planning", "checkpointed-analysis",
     "cli-subagent-progress-logging", "decorator-pattern", "deep-debugging", "design-for-change",
     "persistent-analysis-store", "polymorphism-and-strategy", "state-machine-design",
-    "subagent-model-routing",
+    "subagent-model-routing", "define-task-requirements",
+    "define-product-requirements", "build-from-requirements", "product-builder",
 } | PATTERN_SKILLS
 FULL_AGENTS = [
     "explore", "general", "planner", "architecture-reviewer",
     "code-reviewer", "security-auditor", "debugger", "test-runner",
     "verifier", "docs-writer", "bash", "browser-tester", "scout",
     "orchestrator", "db-reader", "character-art-reviewer",
-    "game-performance-reviewer",
+    "game-performance-reviewer", "requirements-reviewer",
 ]
 LITE_AGENTS = ["explore", "planner", "debugger", "general",
-               "code-reviewer", "orchestrator", "scout"]
+               "code-reviewer", "orchestrator", "scout", "requirements-reviewer"]
 FULL_ONLY_AGENTS = sorted(set(FULL_AGENTS) - set(LITE_AGENTS))
 SHARED_SKILLS = [
     "checkpointed-analysis", "cli-subagent-progress-logging",
     "decorator-pattern", "design-for-change", "persistent-analysis-store",
     "polymorphism-and-strategy", "state-machine-design", "subagent-model-routing",
+    "define-task-requirements", "define-product-requirements",
+    "build-from-requirements", "product-builder",
     *sorted(PATTERN_SKILLS),
 ]
 HANDOFF_FIELDS = [
@@ -122,8 +127,8 @@ class SourceTreeTests(unittest.TestCase):
                          {p.name for p in full_tree.iterdir() if (p / "SKILL.md").is_file()})
         self.assertEqual(LITE_SKILLS,
                          {p.name for p in lite_tree.iterdir() if (p / "SKILL.md").is_file()})
-        self.assertEqual(34, len(FULL_SKILLS))
-        self.assertEqual(19, len(LITE_SKILLS))
+        self.assertEqual(38, len(FULL_SKILLS))
+        self.assertEqual(23, len(LITE_SKILLS))
 
     def test_pattern_links_and_evaluation_scenarios(self):
         for profile in ("full", "lite"):
@@ -151,6 +156,8 @@ class SourceTreeTests(unittest.TestCase):
         self.assertEqual(FULL_ONLY_AGENTS, sorted(set(FULL_AGENTS) - set(LITE_AGENTS)))
         self.assertIn("architecture-reviewer", full_list)
         self.assertNotIn("architecture-reviewer", lite_list)
+        self.assertIn("requirements-reviewer", full_list)
+        self.assertIn("requirements-reviewer", lite_list)
         for profile_list in (full_list, lite_list):
             for agent_id in profile_list:
                 catalog = ROOT / "agents" / "catalog" / f"{agent_id}.md"
@@ -175,6 +182,49 @@ class SourceTreeTests(unittest.TestCase):
             for anchor in ("base:", "revision:", "worktree:"):
                 self.assertIn(anchor, text, f"{profile} handoff missing base-identity anchor: {anchor}")
             self.assertIn("primary", text, "handoff must keep canonical state single-writer")
+
+    def test_requirements_workflow_is_shared_and_decision_gated(self):
+        new_skills = ("define-task-requirements", "define-product-requirements",
+                      "build-from-requirements", "product-builder")
+        for profile in ("full", "lite"):
+            root = ROOT / profile / ".cline" / "skills"
+            for name in new_skills:
+                skill = (root / name / "SKILL.md").read_text()
+                self.assertIn("name: " + name, skill)
+                self.assertTrue(skill.startswith("---\n"))
+            for name in new_skills[:3]:
+                evals = json.loads((root / name / "evals" / "evals.json").read_text())
+                self.assertEqual(name, evals["skill_name"])
+                self.assertGreaterEqual(len(evals["evals"]), 2)
+                for item in evals["evals"]:
+                    self.assertTrue(item["prompt"])
+                    self.assertTrue(item["expected_output"])
+                    self.assertTrue(item["assertions"])
+            contract = (root / "define-task-requirements" / "references" /
+                        "requirements-contract.md").read_text()
+            for term in ("requirements_schema_version", "kind: feature",
+                         "requirements_status: DRAFT", "delivery_status: DEFINING",
+                         "Feature index", "READY gate", "Delivery tracking"):
+                self.assertIn(term.lower(), contract.lower())
+            task = (root / "define-task-requirements" / "SKILL.md").read_text()
+            product = (root / "define-product-requirements" / "SKILL.md").read_text()
+            builder = (root / "build-from-requirements" / "SKILL.md").read_text()
+            alias = (root / "product-builder" / "SKILL.md").read_text()
+            self.assertIn("BLOCKING_PRODUCT_DECISION", task)
+            self.assertIn(".ai/work/requirements/", task)
+            self.assertIn("define-task-requirements", product)
+            self.assertIn("all in-scope MVP features are READY", product)
+            for term in ("CHECKPOINT AND CONTINUE", "independent", "UNVERIFIED",
+                         "HANDOFF.md", "CHANGE_REQUEST"):
+                self.assertIn(term, builder)
+            self.assertIn("build-from-requirements", alias)
+            tracking = (root / "define-task-requirements" / "references" /
+                        "git-workspace.md").read_text()
+            for status in ("DEFINING", "READY TO BUILD", "IN PROGRESS",
+                           "READY FOR REVIEW", "TESTING", "COMPLETE", "BLOCKED"):
+                self.assertIn(status, tracking)
+            self.assertIn("YYYYMMDDTHHMMSSZ", tracking)
+            self.assertIn("Pull requests", tracking)
 
     def test_routing_wiring(self):
         full_core = (ROOT / "full" / ".clinerules" / "00-core-global.md").read_text()
@@ -355,10 +405,10 @@ class ShellRendererTests(unittest.TestCase):
 
         cursor_agents = self.home / ".cursor" / "agents"
         cursor_files = list(cursor_agents.glob("*.md"))
-        self.assertEqual(17, len(cursor_files),
-                         "full profile: 17 Cursor agents (16 managed + 1 personal)")
+        self.assertEqual(18, len(cursor_files),
+                         "full profile: 18 Cursor agents (17 managed + 1 personal)")
         marked = [p for p in cursor_files if AGENT_MARKER in p.read_text()]
-        self.assertEqual(16, len(marked), "personal unmarked agent must survive, not be replaced")
+        self.assertEqual(17, len(marked), "personal unmarked agent must survive, not be replaced")
         arch = cursor_agents / "architecture-reviewer.md"
         self.assertTrue(arch.exists(), "architecture-reviewer agent not installed for Cursor")
         self.assertIn(AGENT_MARKER, arch.read_text())
@@ -368,10 +418,10 @@ class ShellRendererTests(unittest.TestCase):
         self.assertIn("preserved personal agent", result.stdout)
 
         oc_agents = self.home / "occonfig" / "agents"
-        self.assertEqual(17, len(list(oc_agents.glob("*.md"))))
+        self.assertEqual(18, len(list(oc_agents.glob("*.md"))))
         marked_opencode = [p for p in oc_agents.glob("*.md")
                            if AGENT_MARKER in p.read_text()]
-        self.assertEqual(16, len(marked_opencode),
+        self.assertEqual(17, len(marked_opencode),
                          "unmarked OpenCode agent must survive, not be replaced")
         self.assertEqual("personal OpenCode planner\n", personal_opencode.read_text())
         arch_oc = oc_agents / "architecture-reviewer.md"
@@ -382,14 +432,14 @@ class ShellRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, arch_text)
 
         oc_skills = self.home / "occonfig" / "skills"
-        self.assertEqual(34, len([p for p in oc_skills.iterdir() if p.is_dir()]))
+        self.assertEqual(38, len([p for p in oc_skills.iterdir() if p.is_dir()]))
         self.assertTrue((oc_skills / "design-for-change" / "references" / "design-handoff.md").is_file())
         self.assertTrue((self.home / ".cline" / "skills" / "polymorphism-and-strategy" / "SKILL.md").is_file())
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(21, len(managed), "full Cursor = 6 game + 15 shared skills")
+        self.assertEqual(25, len(managed), "full Cursor = 6 game + 19 shared skills")
         for name in ("design-for-change", "polymorphism-and-strategy",
                      "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging"):
             self.assertTrue((cursor_skills / name / "SKILL.md").is_file(),
@@ -417,22 +467,22 @@ class ShellRendererTests(unittest.TestCase):
         self.assertFalse((cursor_agents / "architecture-reviewer.md").exists(),
                          "full-only agent must be removed on lite switch")
         cursor_files = list(cursor_agents.glob("*.md"))
-        self.assertEqual(7, len(cursor_files),
-                         "lite profile: 7 Cursor agents (6 managed + 1 personal)")
+        self.assertEqual(8, len(cursor_files),
+                         "lite profile: 8 Cursor agents (7 managed + 1 personal)")
         marked = [p for p in cursor_files if AGENT_MARKER in p.read_text()]
-        self.assertEqual(6, len(marked))
+        self.assertEqual(7, len(marked))
         self.assertEqual("personal cursor planner\n", personal.read_text(),
                          "personal agent was touched by the profile switch")
 
         oc_agents = self.home / "occonfig" / "agents"
-        self.assertEqual(7, len(list(oc_agents.glob("*.md"))))
+        self.assertEqual(8, len(list(oc_agents.glob("*.md"))))
         self.assertFalse((oc_agents / "architecture-reviewer.md").exists())
-        self.assertEqual(19, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
+        self.assertEqual(23, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p.name for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(15, len(managed), "lite keeps exactly the shared Cursor skills")
+        self.assertEqual(19, len(managed), "lite keeps exactly the shared Cursor skills")
         for game_skill in ("gameplay-code-quality", "godot-game-development",
                            "game-performance-profiling", "build-3d-game-characters",
                            "game-reference-to-spec", "derive-3d-character-specs"):
@@ -582,19 +632,19 @@ class PythonRendererTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
         codex_agents = self.home / ".codex" / "agents"
-        self.assertEqual(17, len(list(codex_agents.glob("*.toml"))))
+        self.assertEqual(18, len(list(codex_agents.glob("*.toml"))))
         self.assertEqual('# personal\nname = "general"\n', codex_personal.read_text(),
                          "unmarked personal Codex agent was overwritten")
         self.assertIn(AGENT_MARKER, (codex_agents / "architecture-reviewer.toml").read_text())
 
         claude_agents = self.home / ".claude" / "agents"
-        self.assertEqual(17, len(list(claude_agents.glob("*.md"))))
+        self.assertEqual(18, len(list(claude_agents.glob("*.md"))))
         self.assertEqual("# personal claude planner\n", claude_personal.read_text(),
                          "unmarked personal Claude agent was overwritten")
         self.assertIn(AGENT_MARKER, (claude_agents / "architecture-reviewer.md").read_text())
 
         self.assertEqual("private\n", (private_skill / "SKILL.md").read_text())
-        self.assertEqual(35, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
+        self.assertEqual(39, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
 
         delegation = (self.home / ".hermes" / "skills" / "cline-config-delegation" / "SKILL.md").read_text()
         self.assertIn("## architecture-reviewer", delegation)
@@ -605,9 +655,9 @@ class PythonRendererTests(unittest.TestCase):
 
         result = self.run_multitool("lite")
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        self.assertEqual(7, len(list(codex_agents.glob("*.toml"))))
+        self.assertEqual(8, len(list(codex_agents.glob("*.toml"))))
         self.assertFalse((codex_agents / "architecture-reviewer.toml").exists())
-        self.assertEqual(7, len(list(claude_agents.glob("*.md"))))
+        self.assertEqual(8, len(list(claude_agents.glob("*.md"))))
         self.assertFalse((claude_agents / "architecture-reviewer.md").exists())
         self.assertEqual('# personal\nname = "general"\n', codex_personal.read_text())
         self.assertEqual("# personal claude planner\n", claude_personal.read_text())

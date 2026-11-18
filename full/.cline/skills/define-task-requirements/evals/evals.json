@@ -1,0 +1,34 @@
+{
+  "skill_name": "define-task-requirements",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We need WalletConnect login and server auth; make it build-ready. Keep user secrets safe.",
+      "expected_output": "Draft feature spec with user journey, auth trust boundaries, explicit high-impact unanswered choices, and testable failure acceptance; DRAFT until decisions made.",
+      "assertions": [
+        "Does not silently decide authorization or session semantics",
+        "Prioritizes targeted questions and checks repo evidence",
+        "Uses stable AC IDs for happy and negative paths",
+        "No automatic READY with blocking security ambiguity"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a small README typo correction; all requirements specified.",
+      "expected_output": "Do not trigger elaborate requirements interview; route trivial implementation directly.",
+      "assertions": [
+        "Scope fit check avoids ceremonial PRD"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "User answers all questions about offline same-device restart, with concrete constraints; finalize.",
+      "expected_output": "READY feature document with measurable pass/fail acceptance, decision provenance, and negative recovery tests.",
+      "assertions": [
+        "All high-impact ambiguities resolved",
+        "Builder-ready gate explicit",
+        "No user question repeated"
+      ]
+    }
+  ]
+}

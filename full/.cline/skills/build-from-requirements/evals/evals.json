@@ -1,0 +1,35 @@
+{
+  "skill_name": "build-from-requirements",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/product-builder @docs/requirements/game/PRD.md (READY with three dependent features)",
+      "expected_output": "Reads all linked specs, follows dependency graph, implements phase by phase, verifies against AC IDs, independently reviews when available, checkpoints and continues; no unnecessary product clarification.",
+      "assertions": [
+        "No stop at first checkpoint",
+        "Owner and dependency safety",
+        "Independent review distinguished from self review",
+        "Unverified device tests remain unverified"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Build from DRAFT spec with unresolved authorization choices.",
+      "expected_output": "Refuses unsafe guesses; records scoped change request, continues only independent READY work.",
+      "assertions": [
+        "No DRAFT treated as READY",
+        "No speculative auth policy"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "During phase 2 the native hardware test cannot run because phone disconnected.",
+      "expected_output": "Records BLOCKED_EXTERNAL/UNVERIFIED, runs other ready tests, retains handoff; does not report COMPLETE.",
+      "assertions": [
+        "Evidence-based acceptance",
+        "Continuation from durable state",
+        "No claim of background persistence"
+      ]
+    }
+  ]
+}
