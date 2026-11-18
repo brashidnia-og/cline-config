@@ -11,7 +11,7 @@ This skill is lead-only guidance. Never paste it into a worker prompt; workers r
 
 ## 1. Inputs: which models are usable
 
-The user's prompt (or project notes) names the active models. For each, establish before routing:
+The user's prompt (or project notes) names the active models. On OpenCode, `opencode models --verbose` is the source for current provider/model IDs and display names. Do not infer model IDs from names or assume that an account in another application is configured in OpenCode. For each candidate, establish before routing:
 
 - **Name and endpoint** — how the harness reaches it (native sub-agent tool with a model setting, custom endpoint, CLI child).
 - **Tier** — lead-capable hosted model, or limited worker (local, quantized, small, or slow).
@@ -19,6 +19,19 @@ The user's prompt (or project notes) names the active models. For each, establis
 - **Concurrency** — how many requests the backend serves at once (one GPU/host usually means one active worker).
 
 If the active set is not stated and cannot be read from configuration, ask once. Do not assume a model from an earlier session is still loaded. Do not assume one local backend is stronger than another — measure.
+
+### OpenCode model-bound agents
+
+OpenCode's Task tool selects a named agent; it does not take a model ID for each task. A named agent with its own `model` setting is the binding that makes the selected model run. A model name in the task prompt alone does not change the model.
+
+For OpenCode:
+
+1. Resolve a user-facing display name against `opencode models --verbose` metadata (e.g. `GPT-6 Astra` → `openai/gpt-6-astra`). Match names without case/punctuation differences only when the result is unique. Keep Fast/Ultrafast and other variants distinct. Ask if names are ambiguous.
+2. Select the installed model-bound agent whose description contains both the requested role and exact model ID. For example, use the `scout` agent bound to `openai/gpt-6-astra` for a read-only external research task.
+3. Put the assignment in the Task prompt as usual. The selected agent's configured model—not the prompt text—determines execution.
+4. If the binding is missing, do not silently select another model. Tell the user to sync it, then restart OpenCode before retrying. From the cline-config checkout, run `python3 bin/sync-opencode-model-agents.py --profile full --role scout --all-models` (use `--profile lite` for a lite install). To sync one model by display name, use `--model "GPT-6 Astra"` instead. The command writes global agent files and prints the actual mapping.
+
+The sync command is explicit; never run it as a side effect of ordinary delegation. Existing role agents and their permissions remain separate from model-bound aliases. Add other roles only when their role-specific prompt and permission envelope are needed.
 
 ## 2. Default capability assumptions
 
@@ -45,7 +58,7 @@ Treat local models as **more limited** than the lead unless measured otherwise: 
 
 **Picking among workers:** prefer the idle backend with the best measured throughput for the task shape (long prompt → fastest prefill; long reasoning → largest reasoning budget; tool-heavy → most reliable tool calls). If no worker fits, the lead does it. Do not delegate merely to keep workers busy.
 
-**Explicit selection wins.** When the user explicitly selects a model or reasoning effort for a worker (CLI flags, a named worker, or a handoff `model_selection`), that selection overrides the heuristics above. If the harness cannot honor it (no model/effort setting, no delegation tool), report the limitation and keep the work on the lead — never silently run a different model.
+**Explicit selection wins.** When the user explicitly selects a model or reasoning effort for a worker (CLI flags, a model-bound named agent, or a handoff `model_selection`), that selection overrides the heuristics above. If the harness cannot honor it (no model/effort setting, no matching configured agent, or no delegation tool), report the limitation and keep the work on the lead — never silently run a different model.
 
 Workers may report findings of any severity; never suppress a finding because of which model raised it. Workers escalate on architectural ambiguity, unclear assumptions, conflicting evidence, or work beyond the brief.
 

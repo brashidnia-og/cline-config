@@ -7,6 +7,8 @@ description: Plan code changes and implementation designs before editing. Use fo
 
 Goal: produce an implementation-ready plan grounded in the actual repository.
 
+If the request lacks a testable outcome, a non-goal, or the failure behavior that matters, stop and use `ai-ready-plan` so the requester settles those before this skill sequences work.
+
 ## Subagent fan-out
 Follow `00-core-global` Skill execution. Under **Delegated**: `@explore` for map/paths; `@planner` for the phased plan draft; `@scout` if external deps/docs matter. Primary merges options, risks, and the gate—do not let `@general` own planning. Under **Solo**, do all steps here.
 

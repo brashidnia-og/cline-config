@@ -38,17 +38,18 @@ PATTERN_SKILLS = {
 FULL_SKILLS = {
     "architecture-review", "backend-security-audit", "bugbot-review",
     "build-3d-game-characters", "checkpointed-analysis",
-    "cli-subagent-progress-logging", "database-migration", "deep-debugging",
+    "android-wireless-adb", "cli-subagent-progress-logging", "database-migration", "deep-debugging",
     "decorator-pattern", "design-for-change", "derive-3d-character-specs", "frontend-engineering",
     "frontend-security-audit", "game-performance-profiling",
     "game-reference-to-spec", "gameplay-code-quality", "godot-game-development",
     "persistent-analysis-store", "polymorphism-and-strategy",
     "security-audit-core", "smart-contract-security-audit", "state-machine-design",
     "subagent-model-routing", "test-engineering", "vulnerability-research",
+    "ai-ready-plan",
 } | PATTERN_SKILLS
 LITE_SKILLS = {
-    "change-planning", "checkpointed-analysis",
-    "cli-subagent-progress-logging", "decorator-pattern", "deep-debugging", "design-for-change",
+    "ai-ready-plan", "change-planning", "checkpointed-analysis",
+    "android-wireless-adb", "cli-subagent-progress-logging", "decorator-pattern", "deep-debugging", "design-for-change",
     "persistent-analysis-store", "polymorphism-and-strategy", "state-machine-design",
     "subagent-model-routing",
 } | PATTERN_SKILLS
@@ -63,7 +64,7 @@ LITE_AGENTS = ["explore", "planner", "debugger", "general",
                "code-reviewer", "orchestrator", "scout"]
 FULL_ONLY_AGENTS = sorted(set(FULL_AGENTS) - set(LITE_AGENTS))
 SHARED_SKILLS = [
-    "checkpointed-analysis", "cli-subagent-progress-logging",
+    "ai-ready-plan", "android-wireless-adb", "checkpointed-analysis", "cli-subagent-progress-logging",
     "decorator-pattern", "design-for-change", "persistent-analysis-store",
     "polymorphism-and-strategy", "state-machine-design", "subagent-model-routing",
     *sorted(PATTERN_SKILLS),
@@ -122,8 +123,8 @@ class SourceTreeTests(unittest.TestCase):
                          {p.name for p in full_tree.iterdir() if (p / "SKILL.md").is_file()})
         self.assertEqual(LITE_SKILLS,
                          {p.name for p in lite_tree.iterdir() if (p / "SKILL.md").is_file()})
-        self.assertEqual(34, len(FULL_SKILLS))
-        self.assertEqual(19, len(LITE_SKILLS))
+        self.assertEqual(36, len(FULL_SKILLS))
+        self.assertEqual(21, len(LITE_SKILLS))
 
     def test_pattern_links_and_evaluation_scenarios(self):
         for profile in ("full", "lite"):
@@ -182,10 +183,10 @@ class SourceTreeTests(unittest.TestCase):
         full_style = (ROOT / "full" / ".clinerules" / "50-code-style-architecture.md").read_text()
         for phrase in ("Ownership and state", "Model and effort selection",
                        "Unavailable roles", "serial by default",
-                       "explicitly selected model"):
+                       "explicitly selected model", "matching model-bound agent"):
             self.assertIn(phrase, full_core, f"full core rules lost: {phrase}")
         for phrase in ("Design routing", "serial", "explicitly selected model",
-                       "not installed"):
+                       "not installed", "configured model determines execution"):
             self.assertIn(phrase, lite_core, f"lite core rules lost: {phrase}")
         for phrase in ("Design routing", "design-for-change", "decorator-pattern",
                        "polymorphism-and-strategy", "architecture-review"):
@@ -198,12 +199,18 @@ class SourceTreeTests(unittest.TestCase):
 
         planning = (ROOT / "lite" / ".cline" / "skills" / "change-planning" / "SKILL.md").read_text()
         for phrase in ("design-for-change", "references/design-handoff.md",
-                       "polymorphism-and-strategy"):
+                       "polymorphism-and-strategy", "ai-ready-plan"):
             self.assertIn(phrase, planning, f"change-planning lost: {phrase}")
+        for profile in ("full", "lite"):
+            ready = (ROOT / profile / ".cline" / "skills" / "ai-ready-plan" / "SKILL.md").read_text()
+            for phrase in ("One clarification round", "regression", "references/plan-template.md",
+                           "Agent execution rules"):
+                self.assertIn(phrase, ready, f"{profile} ai-ready-plan lost: {phrase}")
 
         for profile in ("full", "lite"):
             routing = (ROOT / profile / ".cline" / "skills" / "subagent-model-routing" / "SKILL.md").read_text()
-            for phrase in ("Explicit selection wins", "serial by default", "schema_version"):
+            for phrase in ("Explicit selection wins", "serial by default", "schema_version",
+                           "opencode models --verbose", "GPT-6 Astra", "model-bound agent"):
                 self.assertIn(phrase, routing, f"{profile} subagent-model-routing lost: {phrase}")
         design = (ROOT / "full" / ".cline" / "skills" / "design-for-change" / "SKILL.md").read_text()
         for phrase in ("references/design-handoff.md", "polymorphism-and-strategy", "decorator-pattern"):
@@ -382,16 +389,17 @@ class ShellRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, arch_text)
 
         oc_skills = self.home / "occonfig" / "skills"
-        self.assertEqual(34, len([p for p in oc_skills.iterdir() if p.is_dir()]))
+        self.assertEqual(36, len([p for p in oc_skills.iterdir() if p.is_dir()]))
         self.assertTrue((oc_skills / "design-for-change" / "references" / "design-handoff.md").is_file())
         self.assertTrue((self.home / ".cline" / "skills" / "polymorphism-and-strategy" / "SKILL.md").is_file())
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(21, len(managed), "full Cursor = 6 game + 15 shared skills")
+        self.assertEqual(23, len(managed), "full Cursor = 6 game + 17 shared skills")
         for name in ("design-for-change", "polymorphism-and-strategy",
-                     "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging"):
+                     "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging",
+                     "android-wireless-adb", "ai-ready-plan"):
             self.assertTrue((cursor_skills / name / "SKILL.md").is_file(),
                             f"shared Cursor skill missing: {name}")
         self.assertTrue((cursor_skills / "design-for-change" / "references" / "design-examples.md").is_file())
@@ -427,19 +435,20 @@ class ShellRendererTests(unittest.TestCase):
         oc_agents = self.home / "occonfig" / "agents"
         self.assertEqual(7, len(list(oc_agents.glob("*.md"))))
         self.assertFalse((oc_agents / "architecture-reviewer.md").exists())
-        self.assertEqual(19, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
+        self.assertEqual(21, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p.name for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(15, len(managed), "lite keeps exactly the shared Cursor skills")
+        self.assertEqual(17, len(managed), "lite keeps exactly the shared Cursor skills")
         for game_skill in ("gameplay-code-quality", "godot-game-development",
                            "game-performance-profiling", "build-3d-game-characters",
                            "game-reference-to-spec", "derive-3d-character-specs"):
             self.assertFalse((cursor_skills / game_skill).exists(),
                              f"managed game skill must be removed on lite: {game_skill}")
         for shared in ("design-for-change", "polymorphism-and-strategy",
-                       "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging"):
+                       "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging",
+                       "android-wireless-adb", "ai-ready-plan"):
             self.assertIn(shared, managed, f"shared skill must survive lite: {shared}")
         self.assert_state_machine_installed("lite")
         self.assert_pattern_skills_installed("lite")
@@ -489,6 +498,8 @@ class ShellRendererTests(unittest.TestCase):
         self.assertFalse((skills / "polymorphism-and-strategy").exists())
         self.assertFalse((skills / "subagent-model-routing").exists())
         self.assertTrue((skills / "cli-subagent-progress-logging").exists(),
+                        "cleanup must not touch skills outside its explicit design allowlist")
+        self.assertTrue((skills / "android-wireless-adb").exists(),
                         "cleanup must not touch skills outside its explicit design allowlist")
         self.assertFalse((skills / "state-machine-design").exists())
         self.assertFalse((skills / "decorator-pattern").exists())
@@ -594,7 +605,7 @@ class PythonRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, (claude_agents / "architecture-reviewer.md").read_text())
 
         self.assertEqual("private\n", (private_skill / "SKILL.md").read_text())
-        self.assertEqual(35, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
+        self.assertEqual(37, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
 
         delegation = (self.home / ".hermes" / "skills" / "cline-config-delegation" / "SKILL.md").read_text()
         self.assertIn("## architecture-reviewer", delegation)

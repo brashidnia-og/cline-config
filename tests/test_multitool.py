@@ -30,9 +30,10 @@ class MultitoolInstallTests(unittest.TestCase):
         personal.mkdir(parents=True)
         (personal / "SKILL.md").write_text("private\n")
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(34, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(36, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
         self.assertTrue((self.home / ".agents/skills/decorator-pattern/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
+        self.assertTrue((self.home / ".agents/skills/android-wireless-adb/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/design-for-change/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/polymorphism-and-strategy/SKILL.md").is_file())
@@ -40,9 +41,10 @@ class MultitoolInstallTests(unittest.TestCase):
         self.assertEqual(17, len(list((self.home / ".codex/agents").glob("*.toml"))))
         self.assertTrue((self.home / ".codex/agents/architecture-reviewer.toml").is_file())
         self.run_installer("install", "--profile", "lite")
-        self.assertEqual(19, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(21, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
         self.assertTrue((self.home / ".agents/skills/decorator-pattern/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
+        self.assertTrue((self.home / ".agents/skills/android-wireless-adb/scripts/discover_wireless_devices.py").is_file())
         self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/design-for-change/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/state-machine-design/references/gameplay.md").is_file())
@@ -51,8 +53,22 @@ class MultitoolInstallTests(unittest.TestCase):
         self.assertFalse((self.home / ".claude/agents/architecture-reviewer.md").exists())
         self.assertEqual("private\n", (personal / "SKILL.md").read_text())
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(34, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
+        self.assertEqual(36, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
         self.assertTrue((self.home / ".codex/agents/architecture-reviewer.toml").is_file())
+
+    def test_profile_switch_preserves_separately_managed_opencode_model_agents(self):
+        model_agent = self.home / ".config" / "opencode" / "agents" / "cline-model-scout-openai-gpt-6-astra.md"
+        model_agent.parent.mkdir(parents=True)
+        content = (
+            "---\nmode: subagent\nmodel: openai/gpt-6-astra\nhidden: true\n---\n"
+            "<!-- cline-config:model-agent:v1 -->\n"
+        )
+        model_agent.write_text(content)
+
+        self.run_installer("install", "--profile", "full")
+        self.run_installer("install", "--profile", "lite")
+
+        self.assertEqual(content, model_agent.read_text())
 
     def test_project_rules_force_and_dry_run(self):
         agents = self.project / "AGENTS.md"

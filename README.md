@@ -51,7 +51,7 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the shared design/pattern/reliability skills described below plus `subagent-model-routing` and `cli-subagent-progress-logging` (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
+Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the shared design/pattern/reliability skills described below plus `subagent-model-routing`, `cli-subagent-progress-logging`, and `android-wireless-adb` (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
 
 ### Codex, Claude Code, and Hermes
 
@@ -124,7 +124,7 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills in full and 15 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills in full and 17 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, `cli-subagent-progress-logging`, `android-wireless-adb`, and `ai-ready-plan`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
 Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. If you downgrade to a revision from before these shared skills were added, that older Cursor installer cannot know to remove them; run `./bin/cursor-shared-skill-cleanup.sh` (or pass a skills directory) to remove managed design/routing skills from the script's explicit allowlist. Keep a copy of the current cleanup script before downgrading. Use `-n` to preview; unmarked same-name personal directories are preserved. The CLI progress-logging skill is outside that cleanup allowlist. OpenCode retains its existing profile-wide replacement behavior.
 
@@ -188,6 +188,23 @@ Installers ship named specialist agents from [`agents/catalog/`](agents/catalog/
 | Project (`--project`) | `<project>/.opencode/agents/` | `<project>/.cursor/agents/` |
 
 Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add yourself are left alone. Switching `full` ↔ `lite` removes managed agents not in the new list. Official docs: [opencode.ai/docs/agents](https://opencode.ai/docs/agents), [cursor.com/docs/subagents](https://cursor.com/docs/subagents).
+
+#### Bind an OpenCode role to a provider model
+
+OpenCode's Task tool chooses a named agent; it does not accept a per-launch model ID. Use the separate sync utility to create hidden model-bound aliases from OpenCode's own `opencode models --verbose` catalog. It records exact IDs and display names (for example `GPT-6 Astra` → `openai/gpt-6-astra`) and reuses the selected role's prompt and edit/shell permissions. Generated aliases deny nested Task calls. The local-provider installer remains limited to `provider.local-llm`.
+
+Run the command from the cline-config checkout and from the same OpenCode project context whose model list you want to use:
+
+```bash
+python3 bin/sync-opencode-model-agents.py --list
+python3 bin/sync-opencode-model-agents.py --profile full --role scout --all-models --dry-run
+python3 bin/sync-opencode-model-agents.py --profile full --role scout --all-models
+python3 bin/sync-opencode-model-agents.py --profile full --role scout --model "GPT-6 Astra"
+```
+
+Use `--profile lite` for a lite installation. `--model` accepts an exact provider/model ID or an unambiguous display name, ignoring case and punctuation; variants such as Fast and Ultrafast remain distinct. The default role is `scout`; other roles in the selected profile can be bound with `--role` and `--model` or `--all-models`.
+
+Generated files use a separate ownership marker and filename namespace, so ordinary full/lite installs do not remove them. Sync does not overwrite personal collisions. A failed or empty model discovery leaves existing files untouched. Stale aliases are retained unless `--prune-stale` is explicitly passed with `--all-models`. Sync only writes global agents under `~/.config/opencode/agents` (honoring `OPENCODE_CONFIG_DIR` and `XDG_CONFIG_HOME`); restart OpenCode to load changes. The command does not modify provider authentication, `opencode.jsonc`, or existing specialist-agent assignments.
 
 **ELI5:** the primary agent is the foreman. A subagent gets a **fresh context**, does noisy search/review work there, and returns a **short report** so the main window does not fill up. Invoke with `@explore …` or ask the primary to use Task; parallel A/B/C is model-driven (multiple Task calls in one turn), not guaranteed.
 
@@ -305,15 +322,21 @@ Two composable skills for repository-scale work that exceeds one useful model co
 | `checkpointed-analysis` | Orchestrator: bounded investigate → semantic checkpoint → continue loops |
 | `persistent-analysis-store` | Schema for gitignored `.ai/analysis/` (`STATE.md` as index; component docs on disk) |
 
-**Routing:** load `checkpointed-analysis` (it pulls in `persistent-analysis-store`), then optionally one domain skill (`architecture-review`, `deep-debugging`, `change-planning`, or `security-audit-core` + one stack skill). Checkpoint after meaningful progress — not on a fixed reasoning-token interval. Do not stop after writing a checkpoint.
+**Routing:** load `checkpointed-analysis` (it pulls in `persistent-analysis-store`), then optionally one domain skill (`architecture-review`, `deep-debugging`, `change-planning`, `ai-ready-plan`, or `security-audit-core` + one stack skill). Checkpoint after meaningful progress — not on a fixed reasoning-token interval. Do not stop after writing a checkpoint.
 
 Prompt shape: `Analyze X with checkpointing` or `Design a plan for Y using checkpointed-analysis`.
 
 ## Sub-agent model routing (`full/` and `lite/`)
 
-`subagent-model-routing` is lead-only guidance for a strong main-thread model working with more limited workers (local vLLM/llama.cpp/Ollama models, small or quantized models). It covers what the lead keeps versus delegates, picking a worker from the models you say are active, concurrency and single-writer state, reasoning/answer budgets with a truncation probe, a fixed worker brief and report schema, stop rules, and lead verification. It never goes into worker prompts.
+`subagent-model-routing` is lead-only guidance for deciding what to delegate, honoring explicit model choices, and verifying worker output. On OpenCode it resolves display names using `opencode models --verbose` and selects a matching model-bound named agent; model names in a task prompt do not override the agent's configured model. It also covers capability-aware routing, concurrency and single-writer state, worker briefs and reports, stop rules, and lead verification.
 
 Prompt shape: `Active models: lead = <hosted model>; workers = <local-a>, <local-b> (200k ctx, 8k reasoning). Use subagent-model-routing to audit X.`
+
+## Wireless Android devices (`full/` and `lite/`)
+
+[`android-wireless-adb`](full/.cline/skills/android-wireless-adb/SKILL.md) finds handsets with `adb mdns`, pairs and connects them, and describes each one from adb before a device test. A short `adb mdns services` snapshot is not the device list: the bundled script listens on `adb mdns track-services --proto-text`, collapses a phone that is already connected on another address, and selects every ready device unless `--limit` or `--match` says otherwise.
+
+Prompt shape: `Use android-wireless-adb to run this device test on every wireless phone` or `Use android-wireless-adb and test on one device`.
 
 ## Full layout
 
@@ -327,7 +350,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 34 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
+└── .cline/skills/    # 36 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing, wireless adb, AI-ready plans
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).
@@ -350,6 +373,8 @@ lite/
 │   ├── 50-verify.md
 │   └── cmd/10-cmd-safety.md
 └── .cline/skills/
+    ├── ai-ready-plan/
+    ├── android-wireless-adb/
     ├── adapter-pattern/
     ├── cache-design/
     ├── change-planning/
@@ -371,7 +396,7 @@ lite/
     └── transactional-outbox/
 ```
 
-Planning, debugging, design selection, and long-running checkpointed investigation live in **skills** so always-on context stays small. `design-for-change` is for nontrivial code-level responsibility/variation choices; `decorator-pattern` handles composable additive wrappers; `polymorphism-and-strategy` is conditional on genuinely varying behavior; `state-machine-design` handles lifecycle/event-order modeling and refactoring. Both profiles include these skills. `cli-subagent-progress-logging` (in both profiles) keeps CLI-launched children auditable: combined output mirrored to a per-run log, `set -o pipefail` so a failed child is not masked by a successful `tee`, and a concise outcome + log-path report.
+Planning, debugging, design selection, and long-running checkpointed investigation live in **skills** so always-on context stays small. `design-for-change` is for nontrivial code-level responsibility/variation choices; `decorator-pattern` handles composable additive wrappers; `polymorphism-and-strategy` is conditional on genuinely varying behavior; `state-machine-design` handles lifecycle/event-order modeling and refactoring. Both profiles include these skills. `cli-subagent-progress-logging` (in both profiles) keeps CLI-launched children auditable: combined output mirrored to a per-run log, `set -o pipefail` so a failed child is not masked by a successful `tee`, and a concise outcome + log-path report. `android-wireless-adb` (in both profiles) discovers wireless debugging devices over mDNS and targets tests at the selected serials. `ai-ready-plan` (in both profiles) interviews a vague feature request until acceptance, non-goals, failure behavior, and regressions are decidable, then writes one document an implementing agent can execute.
 
 ## Iteration advice
 
@@ -384,6 +409,7 @@ After changing profile skills, agents, or renderers, run the focused source-tree
 ```bash
 python3 tests/test_multitool.py
 python3 tests/test_design_guidance.py
+python3 tests/test_opencode_model_agents.py
 ```
 
 The wrapper dry-runs show installer destinations without writing and skip live MCP/OpenCode model refreshes:

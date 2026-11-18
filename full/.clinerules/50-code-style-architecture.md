@@ -10,7 +10,8 @@ Architecture is a means to preserve invariants, ownership, testability, and chan
 - **Composable additive behavior around the same contract:** use `decorator-pattern` to assess wrappers, delegation semantics, and composition order, then return to the caller.
 - **Lifecycle/event-order rules, interacting state flags, or scattered transitions:** use `state-machine-design` to assess fit and define the transition contract, then return to the caller; a pipeline or existing small switch may remain appropriate.
 - **System/service/data/deployment boundaries, cross-component changes, or an explicit architecture request:** load `architecture-review`; route code-level choices to `design-for-change` instead of restating them there.
-- **Lightweight change sequencing:** `change-planning` (lite) includes a compact variation step and reuses the `design-for-change` handoff.
+- **Vague feature or change that needs a requirements contract before coding:** load `ai-ready-plan`. It interviews until acceptance, non-goals, failure behavior, and regressions are decidable, then writes one document whose tasks reuse the `design-for-change` handoff.
+- **Lightweight change sequencing:** `change-planning` (lite) includes a compact variation step and reuses the `design-for-change` handoff. Use it once requirements are already decidable. `ai-ready-plan` owns the interview and the handoff document.
 
 One owner per decision: do not load two competing design skills for the same choice, and never let a specialist skill redesign what its caller already resolved.
 

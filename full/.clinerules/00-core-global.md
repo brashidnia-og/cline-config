@@ -48,6 +48,8 @@ When a loaded skill has a **Subagent fan-out** section, follow it under Delegate
 
 **Model and effort selection.** An explicitly selected model or reasoning effort for a worker wins over routing heuristics. If the harness cannot honor it (no model/effort setting, no delegation tool), report the limitation and keep the work on the primary — never silently substitute a different model.
 
+For OpenCode Task routing, model selection is through a named agent's configured model, not text in the task prompt. Follow `subagent-model-routing` to resolve OpenCode display names to exact IDs and select a matching model-bound agent; do not silently fall back when its binding is missing.
+
 **Unavailable roles.** If a referenced named role is not installed or its delegation tool is unavailable, the primary performs that step itself (Solo for that step); do not fail the task or invent the missing role.
 
 When you launch a sub-agent as a CLI child (`hermes chat`, test runners, build tools) instead of a native sub-agent tool, follow the `cli-subagent-progress-logging` skill: mirror the child's combined stdout and stderr to a per-run log (`2>&1 | tee`) with `set -o pipefail`, and report its exit status and log path.

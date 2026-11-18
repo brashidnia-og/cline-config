@@ -248,6 +248,12 @@ If the LLM server is unreachable the install warns and continues;
 --skip-opencode skips this step. Run the script directly for a hard-failing
 refresh.
 
+OpenCode model-bound agents are separate and opt-in:
+  python3 bin/sync-opencode-model-agents.py --list
+  python3 bin/sync-opencode-model-agents.py --profile full --role scout --all-models
+Use --model DISPLAY_NAME_OR_ID for one model; use --prune-stale with
+--all-models only when you intentionally want to remove unavailable bindings.
+
 EOF
 }
 

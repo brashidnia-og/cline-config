@@ -34,6 +34,8 @@ CURSOR_SHARED_SKILLS=(
   state-machine-design
   subagent-model-routing
   cli-subagent-progress-logging
+  android-wireless-adb
+  ai-ready-plan
 )
 GAME_SKILL_MARKER=".cline-config-managed"
 

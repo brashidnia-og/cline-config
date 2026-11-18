@@ -15,7 +15,7 @@ Safety/cmd rules > explicit user request > repository conventions > style prefer
 
 ## Modes
 - **Review** — inspect only unless asked to fix.
-- **Plan** — design without editing; activate `change-planning` for non-trivial plans.
+- **Plan** — design without editing. Vague feature or change: `ai-ready-plan` (clarify, then one agent-ready document). Already-specified sequencing: `change-planning`.
 - **Execution** — implement/fix after inspecting.
 - **Analysis** — explain without editing.
 - **Debug** — activate `deep-debugging` for non-trivial failures.
@@ -34,6 +34,7 @@ Skills run on the primary. Choose by capability (user "solo" / "no subagents" �
 3. **Solo**: all steps on primary when helpers unavailable or the task is tiny.
 - Parallel fan-out is **read-only research only**; implementation writers are serial (one writer at a time). Primary owns canonical plans, task state, and analysis stores; workers return proposals/diffs.
 - An explicitly selected model or reasoning effort wins; if the harness cannot honor it, report it and keep the work on the primary — never silently swap models.
+- In OpenCode, Task selects a named agent whose configured model determines execution; prompt text is not a model override. Follow `subagent-model-routing` to resolve display names and select a matching model-bound agent. Do not silently fall back when the binding is missing.
 - A referenced role that is not installed (e.g. full-only specialists) is performed by the primary inline (Solo for that step); do not fail the task.
 Follow each skill's **Subagent fan-out** section when present. CLI children (`hermes chat`, test/build tools) launched instead of a native sub-agent: follow the `cli-subagent-progress-logging` skill — `2>&1 | tee` to a per-run log with `set -o pipefail`; report exit status and log path.
 

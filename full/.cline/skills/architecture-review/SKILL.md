@@ -129,7 +129,7 @@ Produce an ordered plan that surfaces risk early. For each phase identify:
 - tests/validation,
 - migration/deployment/rollback considerations.
 
-Avoid vague steps such as “update backend” or “add tests”. Make each step executable by another engineer.
+Avoid vague steps such as “update backend” or “add tests”. Make each step executable by another engineer. When the user needs one document an implementing agent can execute, record that handoff with `ai-ready-plan` instead of a second plan format. If the request is still vague, that skill interviews first.
 
 ## 10. Final gate
 
