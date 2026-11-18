@@ -25,10 +25,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile source and tests
+        env:
+          PYTHONPYCACHEPREFIX: ${{ runner.temp }}/compile-cache
         run: |
           python -m compileall -q bin tests
           python -m py_compile full/.cline/skills/android-wireless-adb/scripts/discover_wireless_devices.py
           python -m py_compile lite/.cline/skills/android-wireless-adb/scripts/discover_wireless_devices.py
+      - name: Install Hermes MCP test dependency
+        run: python -m pip install 'PyYAML>=6.0.2,<7'
       - name: Run offline test suite
         run: python -m unittest discover -s tests -v
         env:

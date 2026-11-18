@@ -117,7 +117,13 @@ class SourceTreeTests(unittest.TestCase):
             lite = ROOT / "lite" / ".cline" / "skills" / skill
             self.assertTrue(full.is_dir(), f"full copy missing: {skill}")
             self.assertTrue(lite.is_dir(), f"lite copy missing: {skill}")
-            for source in sorted(p for p in full.rglob("*") if p.is_file()):
+            # Compare managed source assets, not interpreter-generated artifacts.
+            # Importing a script creates pyc files containing source-specific
+            # co_filename paths, so full and lite caches are not byte-identical.
+            for source in sorted(
+                p for p in full.rglob("*")
+                if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+            ):
                 relative = source.relative_to(full)
                 counterpart = lite / relative
                 self.assertTrue(counterpart.is_file(),

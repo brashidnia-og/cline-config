@@ -22,8 +22,14 @@ class MultitoolInstallTests(unittest.TestCase):
 
     def run_installer(self, *args):
         env = dict(os.environ, HOME=str(self.home))
-        return subprocess.run(["python3", str(INSTALLER), *args], env=env,
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(["python3", str(INSTALLER), *args], env=env,
+                                capture_output=True, text=True, check=False)
+        if result.returncode:
+            self.fail(
+                f"multitool {args!r} failed (exit={result.returncode})\\n"
+                f"stdout:\\n{result.stdout}\\nstderr:\\n{result.stderr}"
+            )
+        return result
 
     def test_full_lite_switch_preserves_personal_content(self):
         personal = self.home / ".agents" / "skills" / "private-skill"

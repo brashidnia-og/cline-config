@@ -242,7 +242,7 @@ class AgentSyncTests(unittest.TestCase):
             )
             env = dict(os.environ, OPENCODE_CONFIG_DIR=str(config_dir))
             result = subprocess.run(
-                ["opencode", "agent", "list"],
+                ["opencode", "debug", "agents"],
                 env=env,
                 capture_output=True,
                 text=True,
