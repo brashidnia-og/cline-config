@@ -136,6 +136,26 @@ class SourceTreeTests(unittest.TestCase):
         self.assertEqual(43, len(FULL_SKILLS))
         self.assertEqual(28, len(LITE_SKILLS))
 
+    def test_hermes_game_skill_evaluations_and_references(self):
+        # Fixtures document candidate behaviors, not measured model improvements.
+        tree = ROOT / "full" / ".cline" / "skills"
+        for name in ("godot-game-development", "game-performance-profiling",
+                     "test-engineering"):
+            source = tree / name
+            data = json.loads((source / "evals" / "evals.json").read_text())
+            self.assertEqual(name, data["skill_name"])
+            self.assertEqual([1, 2, 3], [case["id"] for case in data["evals"]])
+            for case in data["evals"]:
+                self.assertTrue(case["prompt"])
+                self.assertTrue(case["expected_output"])
+                self.assertTrue(case["assertions"])
+            for doc in source.rglob("*.md"):
+                for link in re.findall(r"\]\(([^)]+)\)", doc.read_text()):
+                    if "://" not in link and not link.startswith("#"):
+                        target = (doc.parent / link.split("#", 1)[0])
+                        self.assertTrue(target.is_file(),
+                                        f"missing relative link in {doc}: {link}")
+
     def test_pattern_links_and_evaluation_scenarios(self):
         for profile in ("full", "lite"):
             tree = ROOT / profile / ".cline" / "skills"

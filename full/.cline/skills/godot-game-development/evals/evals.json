@@ -1,0 +1,33 @@
+{
+  "skill_name": "godot-game-development",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review a Godot mobile build where a headless test printed PASS but also logged SCRIPT ERROR, and screenshots of lobby and results are identical. How do you establish whether the gates passed?",
+      "expected_output": "Retain the real engine status and full diagnostics, distinguish expected negative errors, verify actual scene states and rendered screenshots, no fabricated pass.",
+      "assertions": [
+        "Engine status and diagnostics independently verified",
+        "Screenshot state/dimensions validated",
+        "Preserves failure evidence"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A two-phone game has input admission limits and network packets containing timers; draft focused validation for malformed packets and expiry.",
+      "expected_output": "Distinguishes ingress parsing bounds from per-seat token budgets, checks transactional state preservation, timer wire range and any internal negative sentinel semantics, real round trip.",
+      "assertions": [
+        "Separate ingress and logical budgets",
+        "No unwanted state mutation on rejected inputs",
+        "Respects internal versus wire timer semantics"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Fix punctuation in a Godot documentation comment.",
+      "expected_output": "Direct one-line edit without loading all networking, touch, and resource reference docs.",
+      "assertions": [
+        "Avoids unnecessary skill references"
+      ]
+    }
+  ]
+}

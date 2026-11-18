@@ -1,0 +1,33 @@
+{
+  "skill_name": "game-performance-profiling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our Godot arena benchmark doubles Engine.time_scale while calling _physics_process(1/60) manually. It reports 20% lower CPU time. Can we call it an optimization?",
+      "expected_output": "Rejects the unsupported inference, confirms actual physics delta, steps and comparable workload; asks for correctly controlled baseline and target-device measurements.",
+      "assertions": [
+        "Identifies engine/manual delta mismatch",
+        "Preserves controlled measurement",
+        "No unverified gain"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Collect sustained FPS and energy statistics from two Android devices. One hardware feed drops 30% of samples and the device stops early. Report the results.",
+      "expected_output": "Reports real initial/end times and missing interval coverage; never fabricates zero power values or hides shortened observation window.",
+      "assertions": [
+        "Captures actual observed duration",
+        "Explicit missing telemetry",
+        "No zero substitute"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Change one local animation label, with no performance target or runtime issue.",
+      "expected_output": "Does not demand a profiling sweep for a trivial cosmetic edit.",
+      "assertions": [
+        "Avoids irrelevant profiling"
+      ]
+    }
+  ]
+}

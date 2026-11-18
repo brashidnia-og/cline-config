@@ -19,8 +19,13 @@ ROOT = Path(__file__).resolve().parents[1]
 MARKER = "<!-- cline-config:model-agent:v1 -->"
 NAME_LIMIT = 64
 VALID_AGENT_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-# OpenCode V2 may expose a model variant with a #variant suffix.
-MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*/[A-Za-z0-9][A-Za-z0-9._+-]*(?:#[A-Za-z0-9][A-Za-z0-9._+-]*)?$")
+# OpenCode V2 selectors are provider/model, optionally #variant. Provider
+# ends at the FIRST slash; OpenRouter and other providers can use nested
+# model IDs, e.g. openrouter/anthropic/claude-sonnet-5.5#high.
+_MODEL_SEGMENT = r"[A-Za-z0-9][A-Za-z0-9._+-]*"
+MODEL_ID = re.compile(
+    rf"^{_MODEL_SEGMENT}/(?:{_MODEL_SEGMENT}/)*{_MODEL_SEGMENT}(?:#{_MODEL_SEGMENT})?$"
+)
 
 
 @dataclass(frozen=True)
@@ -247,7 +252,10 @@ def render_agent(role: AgentRole, model: Model) -> tuple[str, str]:
         "---",
         "",
         MARKER,
-        f"<!-- cline-config:role={role.id} model={model.id} display={model.name} -->",
+        # Do not interpolate the provider-controlled display name into raw
+        # Markdown/HTML: characters such as '-->' can break out of a comment.
+        # The display name remains safely quoted in the YAML description.
+        f"<!-- cline-config:role={role.id} model={model.id} -->",
         "",
         role.prompt.rstrip(),
         "",
