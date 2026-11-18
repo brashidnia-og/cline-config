@@ -7,6 +7,46 @@ Shared engineering rules, skills, agents, and MCP configuration for **Cline, Ope
 | [`full/`](full/) | Multi-stack work: Kotlin/JVM, TS/JS, **React+Vite+Redux**, Rust, Python, Docker, AWS CLI/CDK, deep reviews | ~7–9k tokens (all rules enabled) |
 | [`lite/`](lite/) | Lean sessions focused on **planning** and **debugging** | ~1.5–2k tokens; +~0.7–1k when a skill loads |
 
+## Requirements discovery and autonomous product building
+
+The tracked Git-native default for specifications, status history, branch/PR references, and handoffs is `product/work/` (never gitignored); reserve `.ai/` for local scratch and transient logs. Respect an existing project-specific equivalent rather than creating duplicate trackers.
+
+The profiles include three composable, builder-oriented skills (plus one short alias), designed primarily for **Hermes** and equally usable in Cline, OpenCode, Cursor, Codex and Claude Code:
+
+| Skill | Responsibility | Deliverable |
+|---|---|---|
+| [`define-task-requirements`](full/.cline/skills/define-task-requirements/SKILL.md) | Interview for, challenge and finalize a bounded feature/ticket/fix without writing code | A decision-complete, testable, timestamped feature spec |
+| [`define-product-requirements`](full/.cline/skills/define-product-requirements/SKILL.md) | Derive end-to-end product journeys, MVP scope, dependencies and cross-feature contracts; compose the task skill for every feature | A timestamped product PRD plus linked, timestamped features |
+| [`build-from-requirements`](full/.cline/skills/build-from-requirements/SKILL.md) | Implement the READY scope through successive code/test/review/repair/acceptance checkpoints | Verified incremental build, tracked status/branch/PR links, durable phase log and handoff |
+| [`product-builder`](full/.cline/skills/product-builder/SKILL.md) | Thin Hermes-friendly alias for the same builder | Identical execution workflow |
+
+The requirements contract uses a **READY gate**: all consequential product choices are resolved and each in-scope behavior has a testable acceptance procedure. A distinct delivery lifecycle tracks `DEFINING`, `READY TO BUILD`, `IN PROGRESS`, `READY FOR REVIEW`, `TESTING`, `COMPLETE`, and `BLOCKED` in the dated Git-tracked requirement document. An unresolved blocking choice keeps the spec DRAFT; the builder cannot safely infer approval from a file. Existing task skills, `design-for-change`, `checkpointed-analysis`, `subagent-model-routing`, reviewers and test runners provide the implementation mechanics. The builder proceeds from one verified milestone to the next; checkpoints are not completion.
+
+Example Hermes workflow after installing the profile:
+
+```text
+/define-product-requirements Define a router-free multiplayer game platform and interview me for missing product decisions.
+/build-from-requirements @product/work/requirements/20261118T024512Z-router-free-platform.md
+/product-builder @product/work/requirements/20261118T024512Z-router-free-platform.md
+```
+
+Hermes exposes installed skills as slash commands; the repo is a source, not an already-installed runtime. Re-run the profile installer and verify skills are discoverable. Autonomous continuation is limited by actual session/tool capabilities. A handoff enables another session to resume, but does not itself keep a timed-out process running or authorize deployment/destructive operations.
+
+See [requirements workflow and evaluations](docs/requirements-workflow.md).
+
+## Research, decision quality, skill evaluation and clear explanations
+
+Four additional focused skills are shared by full/lite profiles:
+
+| Skill | What it improves |
+|---|---|
+| [`evidence-driven-research`](full/.cline/skills/evidence-driven-research/SKILL.md) | Efficient repository/web retrieval, source/version verification, contradiction checking and concise evidence packets |
+| [`engineering-decision-analysis`](full/.cline/skills/engineering-decision-analysis/SKILL.md) | Adaptive comparison of viable choices including opportunity cost, short/long-term consequences, reversibility and experiments |
+| [`agent-skill-evaluation`](full/.cline/skills/agent-skill-evaluation/SKILL.md) | Baseline-vs-skill evaluations on the actual local/hosted model; verified success, tool errors, cost and negative cases |
+| [`explain-clearly`](full/.cline/skills/explain-clearly/SKILL.md) | When asked "how does X work?", "how will Y work?", TLDR or ELI5: a no-fluff answer, causal explanation and one grounded real-world example/analogy |
+
+Use these **only when triggered**. The first two support requirements discovery and design choices; evaluation is for skill/harness improvements, not routine code edits. Clear explanation affects user-facing communication, not acceptance evidence or runtime permissions. These skills were authored for this repository using public skill-creation and research ideas, not copied from third-party sources. See [workflow research](docs/requirements-workflow.md).
+
 ## Install
 
 Cline loads `.clinerules/` and `.cline/skills/` from a project root (nested folders under `.clinerules/` are loaded recursively). OpenCode reads one global `AGENTS.md` and `SKILL.md` skills from `~/.config/opencode/skills/` (global) or `.opencode/skills/` (project). Global rules/skills apply across projects.
@@ -124,7 +164,7 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills in full and 15 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills in full and 23 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
 Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. If you downgrade to a revision from before these shared skills were added, that older Cursor installer cannot know to remove them; run `./bin/cursor-shared-skill-cleanup.sh` (or pass a skills directory) to remove managed design/routing skills from the script's explicit allowlist. Keep a copy of the current cleanup script before downgrading. Use `-n` to preview; unmarked same-name personal directories are preserved. The CLI progress-logging skill is outside that cleanup allowlist. OpenCode retains its existing profile-wide replacement behavior.
 
@@ -327,7 +367,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 34 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
+└── .cline/skills/    # 42 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).

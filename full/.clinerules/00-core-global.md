@@ -58,6 +58,14 @@ For non-trivial work use one sequence: **mode → inspect → task contract → 
 
 Compilation and tests are allowed only via repository-documented scripts/tasks after inspecting their definitions. Never invent install, deploy, or publish scripts.
 
+## Requirements-to-build routing
+
+For a vague feature or ticket, invoke `define-task-requirements` before making an implementation plan. For a new product or large multi-feature MVP, invoke `define-product-requirements` and compose feature contracts. When handed a READY specification and asked to implement continuously, invoke `build-from-requirements` (alias `product-builder`); use acceptance evidence and durable phase handoffs. DRAFT specifications with unresolved high-impact product choices must not be treated as permission to guess. Do not make a routine, already-defined edit depend on a formal PRD.
+
+## Targeted research, decisions and explanations
+
+For consequential unknowns, load `evidence-driven-research` rather than speculative broad context dumps. For material choices use `engineering-decision-analysis` (hard constraints, alternatives, opportunity cost, reversibility, evidence and disconfirming tests); skip costly deliberation for trivial reversible changes. When users ask "how does X work?", "how will Y work?", "ELI5" or "TLDR", use `explain-clearly`: answer first in plain English, then explain causal steps and give a concrete scenario or clearly bounded analogy. Keep user-facing updates no-fluff and truthful; do not claim proposed behavior already exists. `agent-skill-evaluation` is for benchmarking skills/models, not routine feature execution.
+
 ## Task contract
 
 For every non-trivial task, establish before substantial work:

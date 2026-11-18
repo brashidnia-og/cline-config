@@ -22,7 +22,7 @@ If the active set is not stated and cannot be read from configuration, ask once.
 
 ## 2. Default capability assumptions
 
-Treat local models as **more limited** than the lead unless measured otherwise: shorter reliable reasoning, weaker cross-file synthesis, less dependable tool calls, slower prefill on large prompts, and higher confident-error rates. They are strong at focused, well-specified work on code you point them at.
+Treat each model/backend according to measured capability, not a permanent local-versus-hosted label. Local quantized and small inexpensive hosted models may struggle with long cross-file synthesis or tool reliability, **but this must be verified on the deployed model**; some local models may serve as the lead. Route by tested task outcomes, context quality, tool success, throughput and total verified cost. Give narrow, self-contained briefs to any worker likely to benefit from them.
 
 ## 3. Routing
 
@@ -43,7 +43,7 @@ Treat local models as **more limited** than the lead unless measured otherwise: 
 
 **Do not delegate:** "audit the whole repo", "fix all bugs", open-ended design, or anything whose result the lead cannot verify faster than doing it.
 
-**Picking among workers:** prefer the idle backend with the best measured throughput for the task shape (long prompt → fastest prefill; long reasoning → largest reasoning budget; tool-heavy → most reliable tool calls). If no worker fits, the lead does it. Do not delegate merely to keep workers busy.
+**Picking among workers:** prioritize verified success per unit of total cost/latency, respecting tool reliability and effective context limits. Long prompt → efficient prefill; difficult decisions → demonstrated decision quality; tool-heavy → reliable argument schema and result handling. Use `agent-skill-evaluation` to test routing changes, not to add evaluation overhead during routine builds. If no worker fits, the lead does it. Do not delegate merely to keep workers busy.
 
 **Explicit selection wins.** When the user explicitly selects a model or reasoning effort for a worker (CLI flags, a named worker, or a handoff `model_selection`), that selection overrides the heuristics above. If the harness cannot honor it (no model/effort setting, no delegation tool), report the limitation and keep the work on the lead — never silently run a different model.
 
@@ -117,3 +117,7 @@ Classify each as confirmed, strongly supported, speculative, or false positive. 
 ## 9. Final report
 
 State which model did what, then: confirmed issues; unconfirmed potential issues; false positives; invariants tested; areas reviewed; areas not adequately reviewed; reproduction evidence; remediations; residual risk.
+
+## Research, decision and context budget
+
+Route bounded source-finding to `evidence-driven-research` with explicit question, priority, source version, maximum useful output and stop condition. The lead retains significant decisions and applies `engineering-decision-analysis` using verified packets; separate evidence collection from authority to decide. Load detailed skills only when triggered and never ship entire research histories or decision matrices in a worker brief. Count redundant calls and context consumption, but prefer an additional targeted verification call to an incorrect cheap result. Maintain actual model/backend eval evidence under the skill-evaluation workflow.

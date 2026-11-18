@@ -37,6 +37,14 @@ Skills run on the primary. Choose by capability (user "solo" / "no subagents" �
 - A referenced role that is not installed (e.g. full-only specialists) is performed by the primary inline (Solo for that step); do not fail the task.
 Follow each skill's **Subagent fan-out** section when present. CLI children (`hermes chat`, test/build tools) launched instead of a native sub-agent: follow the `cli-subagent-progress-logging` skill — `2>&1 | tee` to a per-run log with `set -o pipefail`; report exit status and log path.
 
+## Requirements-to-build routing
+
+Vague feature/ticket → `define-task-requirements`; new product or multiple connected features → `define-product-requirements` composing feature contracts; approved READY spec to implement across phases → `build-from-requirements` (`product-builder` alias). Never guess unresolved product decisions or call a checkpoint complete. Skip this workflow for trivial, clearly defined edits.
+
+## Research, decisions and human explanations
+
+Use `evidence-driven-research` for material unknowns (bounded sources/evidence), `engineering-decision-analysis` for consequential alternatives (constraints, short/long-term tradeoffs, opportunity costs, reversibility and falsifying experiments), and `agent-skill-evaluation` when optimizing skills/models. No long decision matrix for trivial work. For "how does/how will X work?", "ELI5", or "TLDR", use `explain-clearly`: concise answer, causal explanation, and one real-world scenario/clear analogy, distinguishing verified from proposed behavior.
+
 ## Task contract (non-trivial)
 Establish: objective, acceptance criteria, current behavior, non-goals, constraints, unknowns. Inspect before guessing. Do not broaden scope opportunistically.
 

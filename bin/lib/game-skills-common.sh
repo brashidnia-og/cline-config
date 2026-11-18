@@ -34,6 +34,14 @@ CURSOR_SHARED_SKILLS=(
   state-machine-design
   subagent-model-routing
   cli-subagent-progress-logging
+  define-task-requirements
+  define-product-requirements
+  build-from-requirements
+  product-builder
+  evidence-driven-research
+  engineering-decision-analysis
+  agent-skill-evaluation
+  explain-clearly
 )
 GAME_SKILL_MARKER=".cline-config-managed"
 

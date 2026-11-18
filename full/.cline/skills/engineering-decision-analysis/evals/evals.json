@@ -1,0 +1,33 @@
+{
+  "skill_name": "engineering-decision-analysis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Should our authentication tokens be stored client-side and what alternative is safer?",
+      "expected_output": "Identify security constraints and trust boundaries; evidence, alternatives, user-approved decisions.",
+      "assertions": [
+        "Hard security constraints first",
+        "No guesses treated as approval",
+        "Evidence and tradeoff"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Fix this typo in a comment.",
+      "expected_output": "No heavy choice matrix; follow convention.",
+      "assertions": [
+        "Skips unnecessary process"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Select between polling and event-driven networking on Android.",
+      "expected_output": "Compare status quo, alternatives, latency evidence, long-term complexity, opportunity cost, rollback and benchmark plan.",
+      "assertions": [
+        "Reversibility and opportunity cost",
+        "Experiment to discriminate",
+        "Uncertainty labeled"
+      ]
+    }
+  ]
+}

@@ -95,6 +95,8 @@ Define observability:
 - traces where cross-boundary diagnosis matters,
 - alerts and operational failure modes.
 
+For consequential technology, data, operational or migration alternatives, use `engineering-decision-analysis` to frame hard constraints, short/long-term consequences, opportunity cost and reversibility. Use `evidence-driven-research` for version-specific or external evidence, not to substitute external docs for repository behavior. Avoid redundant option comparisons if `design-for-change` already documented the decision.
+
 ## 7. Compare alternatives
 
 For consequential decisions compare at least two viable options unless one is clearly forced by existing architecture/requirements.

@@ -1,0 +1,33 @@
+{
+  "skill_name": "evidence-driven-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Read every file in this 300-file repo and explain how function Foo is used.",
+      "expected_output": "Find symbols/callers and tests first; narrow evidence packet, no full repo dump.",
+      "assertions": [
+        "Narrow repository search",
+        "Evidence by paths",
+        "No invented assertions"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Find which AWS API is current and compare with our dependency.",
+      "expected_output": "Version-specific official docs + local versions; distinguish source docs from runtime behavior.",
+      "assertions": [
+        "Official version match",
+        "Conflicting sources checked",
+        "Unverified runtime labeled"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "What does README say our project is named?",
+      "expected_output": "Direct local lookup, no broad research.",
+      "assertions": [
+        "Avoids research overhead"
+      ]
+    }
+  ]
+}
