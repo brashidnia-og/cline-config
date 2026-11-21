@@ -48,6 +48,13 @@ Tests should:
 
 Use repository-established frameworks before adding dependencies.
 
+### Independent oracles and negative controls
+
+- Capture deep before-state snapshots before invoking the action; a snapshot taken afterward cannot prove preservation. Distinguish empty-state tests from preservation of populated state.
+- Assert the actual adapter-projected inputs and identity/capability sets, not only synthetic source rows. Otherwise an overwrite or normalization bug can invalidate the scenario before the tested operation begins.
+- For extraction/refactoring, compare against a preserved pre-refactor oracle where practical. Two entry points sharing one new implementation can agree while sharing a regression. Drive real producer behavior; label synthetic states that the producer cannot emit separately.
+- For mutation/negative-control experiments, retain the intentional mutation, source/mutant hashes, exact commands, process results, and logs in task scratch. Distinguish a bad-input control from removing a production guard and from end-to-end integration proof. Preserve the real checkout.
+
 ## Shared implementation contracts
 
 When multiple implementations/adapters intentionally satisfy one contract, run the same meaningful behavioral cases against each implementation. Then add implementation-specific tests for its distinct failure, invalid-input, cancellation, lifecycle, or integration-wiring behavior. Keep producer/consumer API compatibility tests distinct from tests that prove the implementations share runtime behavior. A new implementation should extend the contract suite without weakening existing assertions; assess a sixth variant to expose assumptions hidden by the current set.
@@ -84,6 +91,8 @@ Use local-chrome-devtools for network/console/runtime evidence when a browser te
 
 MCP interaction is diagnostic evidence; durable regressions should live in repository tests when appropriate.
 
+For screenshot evidence, assert the actual screen/state immediately before capture and wait for rendering. Configuration changes may invalidate readiness. Successful image writes or different filenames alone do not prove correct states; inspect images and check for accidental duplicates.
+
 ## 7. Language/toolchain guidance
 
 ### TypeScript/JavaScript
@@ -95,10 +104,17 @@ Use the repository's JUnit/MockK/Mockito/AssertJ/etc. conventions. For coroutine
 ### Rust
 Keep unit tests near modules when conventional and integration tests under `tests/` when appropriate. Prefer real structures over unnecessary trait mocks. Use property tests when invariants benefit from generated inputs and the repo already supports or justifiably needs them.
 
+### Native adapters and Godot
+For native crypto/session/transport boundaries, use the [native fault-injection reference](references/native-fault-injection.md) when exceptional exits, backpressure, event ordering, ABI, or ownership are under test. Keep platform-specific injection out of production behavior.
+
+For Godot headless gates, imports, lifecycle checks, screenshots, and persisted settings, use [Godot validation and resource safety](../godot-game-development/references/validation-and-resource-safety.md). Keep engine-specific procedures there rather than applying them to unrelated suites.
+
 ## 8. Flaky-test diagnosis
 
 Classify flakiness: time, concurrency, environment, ordering, external service, shared state, random seed, resource pressure, or test isolation.
 Capture the actual failure distribution and remove nondeterminism instead of increasing timeouts blindly.
+
+Do not infer CPU contention from isolated-versus-normal-profile pass differences without a causal experiment. Standalone retries do not turn a failed full-suite gate into a passing one. Isolate persisted fixture settings between runs in task scratch and verify the actual storage path; never delete user settings to reset a test.
 
 ## 9. Validation strategy
 

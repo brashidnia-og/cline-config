@@ -21,8 +21,16 @@ Read `project.godot`, relevant scenes/scripts/resources, autoloads, plugins, inp
 
 ## Verification
 
+Capture the engine's exit status and full log; a printed PASS or exit zero alone does not establish success if script, parse, resource-load errors, or failing assertions also occurred. Preserve failed evidence and give reruns separate logs. Verify lifecycle-dependent defaults after scene-tree entry, not only immediately after construction.
+
 Run the narrowest existing headless scene/script checks that prove structure and gameplay invariants. Launch the relevant scene for controls, camera, animation, readability, and visual effects. If targeting mobile or another constrained device, verify a build there when available; record when only desktop/headless evidence exists. Report the Godot version, scene tested, observed behavior, and remaining device or multiplayer gaps.
 
-## Reference
+## Focused references
+
+Load only the reference relevant to the work:
+
+- [Validation and resource safety](references/validation-and-resource-safety.md) for headless/import gates, screenshot evidence, processing callbacks, test-data isolation, or probe/UID cleanup.
+- [Touch UI and device geometry](references/touch-ui.md) for adaptive controls, safe extents, touch-only navigation, or logical versus physical sizing.
+- [Network and codec invariants](references/network-and-codec-invariants.md) for transactional input acceptance, ingress work limits, replicated timers, or standalone wire codecs.
 
 [Arena-game-v1](references/arena-game-v1.md) shows a Godot 4.7 mobile-renderer project with automated checks and windowed capture. Adapt its validation pattern, not its game-specific rules.

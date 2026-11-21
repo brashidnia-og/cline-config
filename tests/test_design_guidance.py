@@ -47,7 +47,7 @@ FULL_SKILLS = {
     "subagent-model-routing", "test-engineering", "vulnerability-research",
     "define-task-requirements", "define-product-requirements",
     "build-from-requirements", "product-builder",
-    "evidence-driven-research", "engineering-decision-analysis",
+    "android-wireless-adb", "evidence-driven-research", "engineering-decision-analysis",
     "agent-skill-evaluation", "explain-clearly",
 } | PATTERN_SKILLS
 LITE_SKILLS = {
@@ -56,7 +56,7 @@ LITE_SKILLS = {
     "persistent-analysis-store", "polymorphism-and-strategy", "state-machine-design",
     "subagent-model-routing", "define-task-requirements",
     "define-product-requirements", "build-from-requirements", "product-builder",
-    "evidence-driven-research", "engineering-decision-analysis",
+    "android-wireless-adb", "evidence-driven-research", "engineering-decision-analysis",
     "agent-skill-evaluation", "explain-clearly",
 } | PATTERN_SKILLS
 FULL_AGENTS = [
@@ -76,7 +76,7 @@ SHARED_SKILLS = [
     "define-task-requirements", "define-product-requirements",
     "build-from-requirements", "product-builder",
     "evidence-driven-research", "engineering-decision-analysis",
-    "agent-skill-evaluation", "explain-clearly",
+    "agent-skill-evaluation", "explain-clearly", "android-wireless-adb",
     *sorted(PATTERN_SKILLS),
 ]
 HANDOFF_FIELDS = [
@@ -117,7 +117,13 @@ class SourceTreeTests(unittest.TestCase):
             lite = ROOT / "lite" / ".cline" / "skills" / skill
             self.assertTrue(full.is_dir(), f"full copy missing: {skill}")
             self.assertTrue(lite.is_dir(), f"lite copy missing: {skill}")
-            for source in sorted(p for p in full.rglob("*") if p.is_file()):
+            # Compare managed source assets, not interpreter-generated artifacts.
+            # Importing a script creates pyc files containing source-specific
+            # co_filename paths, so full and lite caches are not byte-identical.
+            for source in sorted(
+                p for p in full.rglob("*")
+                if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+            ):
                 relative = source.relative_to(full)
                 counterpart = lite / relative
                 self.assertTrue(counterpart.is_file(),
@@ -133,8 +139,28 @@ class SourceTreeTests(unittest.TestCase):
                          {p.name for p in full_tree.iterdir() if (p / "SKILL.md").is_file()})
         self.assertEqual(LITE_SKILLS,
                          {p.name for p in lite_tree.iterdir() if (p / "SKILL.md").is_file()})
-        self.assertEqual(42, len(FULL_SKILLS))
-        self.assertEqual(27, len(LITE_SKILLS))
+        self.assertEqual(43, len(FULL_SKILLS))
+        self.assertEqual(28, len(LITE_SKILLS))
+
+    def test_hermes_game_skill_evaluations_and_references(self):
+        # Fixtures document candidate behaviors, not measured model improvements.
+        tree = ROOT / "full" / ".cline" / "skills"
+        for name in ("godot-game-development", "game-performance-profiling",
+                     "test-engineering"):
+            source = tree / name
+            data = json.loads((source / "evals" / "evals.json").read_text())
+            self.assertEqual(name, data["skill_name"])
+            self.assertEqual([1, 2, 3], [case["id"] for case in data["evals"]])
+            for case in data["evals"]:
+                self.assertTrue(case["prompt"])
+                self.assertTrue(case["expected_output"])
+                self.assertTrue(case["assertions"])
+            for doc in source.rglob("*.md"):
+                for link in re.findall(r"\]\(([^)]+)\)", doc.read_text()):
+                    if "://" not in link and not link.startswith("#"):
+                        target = (doc.parent / link.split("#", 1)[0])
+                        self.assertTrue(target.is_file(),
+                                        f"missing relative link in {doc}: {link}")
 
     def test_pattern_links_and_evaluation_scenarios(self):
         for profile in ("full", "lite"):
@@ -226,6 +252,13 @@ class SourceTreeTests(unittest.TestCase):
                          "HANDOFF.md", "CHANGE_REQUEST"):
                 self.assertIn(term, builder)
             self.assertIn("build-from-requirements", alias)
+            self.assertIn("regression contract", contract.lower())
+            self.assertIn("RG-001", contract)
+            self.assertIn("regression obligations (RG IDs)", task)
+            self.assertIn("regression obligations (RG)", builder)
+            wireless = root / "android-wireless-adb" / "SKILL.md"
+            self.assertTrue(wireless.is_file())
+            self.assertTrue((root / "android-wireless-adb" / "scripts" / "discover_wireless_devices.py").is_file())
             explanation = (root / "explain-clearly" / "SKILL.md").read_text()
             self.assertIn("How it works", explanation)
             self.assertIn("Concrete example", explanation)
@@ -278,7 +311,8 @@ class SourceTreeTests(unittest.TestCase):
 
         for profile in ("full", "lite"):
             routing = (ROOT / profile / ".cline" / "skills" / "subagent-model-routing" / "SKILL.md").read_text()
-            for phrase in ("Explicit selection wins", "serial by default", "schema_version"):
+            for phrase in ("Explicit selection wins", "serial by default", "schema_version",
+                           "opencode models --verbose", "model-bound agent"):
                 self.assertIn(phrase, routing, f"{profile} subagent-model-routing lost: {phrase}")
         design = (ROOT / "full" / ".cline" / "skills" / "design-for-change" / "SKILL.md").read_text()
         for phrase in ("references/design-handoff.md", "polymorphism-and-strategy", "decorator-pattern"):
@@ -465,14 +499,14 @@ class ShellRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, arch_text)
 
         oc_skills = self.home / "occonfig" / "skills"
-        self.assertEqual(42, len([p for p in oc_skills.iterdir() if p.is_dir()]))
+        self.assertEqual(43, len([p for p in oc_skills.iterdir() if p.is_dir()]))
         self.assertTrue((oc_skills / "design-for-change" / "references" / "design-handoff.md").is_file())
         self.assertTrue((self.home / ".cline" / "skills" / "polymorphism-and-strategy" / "SKILL.md").is_file())
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(29, len(managed), "full Cursor = 6 game + 23 shared skills")
+        self.assertEqual(30, len(managed), "full Cursor = 6 game + 24 shared skills")
         for name in ("design-for-change", "polymorphism-and-strategy",
                      "state-machine-design", "subagent-model-routing", "cli-subagent-progress-logging"):
             self.assertTrue((cursor_skills / name / "SKILL.md").is_file(),
@@ -510,12 +544,12 @@ class ShellRendererTests(unittest.TestCase):
         oc_agents = self.home / "occonfig" / "agents"
         self.assertEqual(8, len(list(oc_agents.glob("*.md"))))
         self.assertFalse((oc_agents / "architecture-reviewer.md").exists())
-        self.assertEqual(27, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
+        self.assertEqual(28, len([p for p in (self.home / "occonfig" / "skills").iterdir() if p.is_dir()]))
 
         cursor_skills = self.home / ".cursor" / "skills"
         managed = [p.name for p in cursor_skills.iterdir()
                    if p.is_dir() and (p / SKILL_DIR_MARKER).is_file()]
-        self.assertEqual(23, len(managed), "lite keeps exactly the shared Cursor skills")
+        self.assertEqual(24, len(managed), "lite keeps exactly the shared Cursor skills")
         for game_skill in ("gameplay-code-quality", "godot-game-development",
                            "game-performance-profiling", "build-3d-game-characters",
                            "game-reference-to-spec", "derive-3d-character-specs"):
@@ -677,7 +711,7 @@ class PythonRendererTests(unittest.TestCase):
         self.assertIn(AGENT_MARKER, (claude_agents / "architecture-reviewer.md").read_text())
 
         self.assertEqual("private\n", (private_skill / "SKILL.md").read_text())
-        self.assertEqual(43, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
+        self.assertEqual(44, len(list((self.home / ".agents" / "skills").glob("*/SKILL.md"))))
 
         delegation = (self.home / ".hermes" / "skills" / "cline-config-delegation" / "SKILL.md").read_text()
         self.assertIn("## architecture-reviewer", delegation)

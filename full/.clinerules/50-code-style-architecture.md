@@ -4,6 +4,7 @@ Architecture is a means to preserve invariants, ownership, testability, and chan
 
 ## Design routing (when to load what)
 
+- **Unresolved feature or product behavior:** use `define-task-requirements` for the tracked acceptance and regression contract first. Do not duplicate this as a separate `ai-ready-plan` document.
 - **Trivial change** (typo, rename, config edit, one-line fix, one unambiguous existing pattern): edit directly; load no design skill.
 - **Nontrivial component/feature/refactor with a real design choice:** load `design-for-change` — it owns code-level responsibilities, invariants, state ownership, variation analysis, and the bounded task handoff.
 - **Genuine algorithm/adapter variation behind a common contract** (within the above): load `polymorphism-and-strategy` for the structure decision, then return to `design-for-change`.

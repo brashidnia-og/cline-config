@@ -1,0 +1,33 @@
+{
+  "skill_name": "test-engineering",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Two adapters share a newly extracted function and both tests pass. How do you verify there was no behavior regression?",
+      "expected_output": "Uses independent pre-refactor oracle/characterization or real producer-consumer semantics, meaningful negative controls and per-adapter failure tests instead of circular agreement.",
+      "assertions": [
+        "Independent oracle",
+        "Representative real producer behavior",
+        "Implementation-specific invalid/failure cases"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A native transport claims a message then throws during post-claim allocation. How should a test prove no leaked owner or stale token?",
+      "expected_output": "Narrow test-only fault injection, checks claim transfer/release, real cleanup event and unwrapped portable tests; no production-only behavior changes.",
+      "assertions": [
+        "Precise fault point",
+        "Ownership resolution on exception",
+        "Portable unwrapped comparison"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Correct a typo in a README. The native allocator does not change.",
+      "expected_output": "Direct small validation, no native fault-injection or exhaustive integration tests.",
+      "assertions": [
+        "Risk-proportionate checks"
+      ]
+    }
+  ]
+}

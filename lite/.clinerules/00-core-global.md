@@ -37,6 +37,8 @@ Skills run on the primary. Choose by capability (user "solo" / "no subagents" �
 - A referenced role that is not installed (e.g. full-only specialists) is performed by the primary inline (Solo for that step); do not fail the task.
 Follow each skill's **Subagent fan-out** section when present. CLI children (`hermes chat`, test/build tools) launched instead of a native sub-agent: follow the `cli-subagent-progress-logging` skill — `2>&1 | tee` to a per-run log with `set -o pipefail`; report exit status and log path.
 
+For OpenCode V2, a model in a worker prompt is not a runtime model switch; use a configured alias described in `subagent-model-routing`, or report that no binding exists.
+
 ## Requirements-to-build routing
 
 Vague feature/ticket → `define-task-requirements`; new product or multiple connected features → `define-product-requirements` composing feature contracts; approved READY spec to implement across phases → `build-from-requirements` (`product-builder` alias). Never guess unresolved product decisions or call a checkpoint complete. Skip this workflow for trivial, clearly defined edits.

@@ -10,6 +10,8 @@ Goal: produce an implementation-ready plan grounded in the actual repository.
 ## Subagent fan-out
 Follow `00-core-global` Skill execution. Under **Delegated**: `@explore` for map/paths; `@planner` for the phased plan draft; `@scout` if external deps/docs matter. Primary merges options, risks, and the gate—do not let `@general` own planning. Under **Solo**, do all steps here.
 
+When product intent or acceptance is materially ambiguous, `define-task-requirements` owns the interview and tracked `product/work/` spec. Do not introduce a second `ai-ready-plan` format or `plans/` tracker. This skill sequences implementation **after** product intent is resolved.
+
 ## 1. Contract
 Objective, acceptance criteria, non-goals, constraints, unknowns.
 

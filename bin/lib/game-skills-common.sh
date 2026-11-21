@@ -42,6 +42,7 @@ CURSOR_SHARED_SKILLS=(
   engineering-decision-analysis
   agent-skill-evaluation
   explain-clearly
+  android-wireless-adb
 )
 GAME_SKILL_MARKER=".cline-config-managed"
 

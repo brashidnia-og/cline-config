@@ -20,6 +20,14 @@ parent_product: none
 ## Quality and constraints
 ## Acceptance criteria
 ## Verification strategy
+
+### Regression contract
+| Regression ID | Existing behavior to preserve | Why affected / inspected path | Existing proof | Required proof |
+|---|---|---|---|---|
+| RG-001 | <unchanged observable behavior> | <real affected caller/state/API path> | <existing test or none> | <test/manual evidence> |
+
+Use `Not applicable — reason and inspected paths` when existing behavior is not at risk; greenfield work may legitimately have no RG rows.
+
 ## Dependencies and delivery
 ## Decisions and defaults
 ## Open gaps

@@ -242,6 +242,12 @@ MCP: merges mcp/cline_mcp_settings.template.json into Cline, Codex,
 Claude Code, and Hermes settings. See mcp/SECURITY.md and mcp/env.example.sh.
 Or run: ./bin/install-mcp.sh
 
+Optional OpenCode V2 model-bound worker aliases (run separately):
+  python3 bin/sync-opencode-model-agents.py --list
+  python3 bin/sync-opencode-model-agents.py --profile full --role scout --model PROVIDER/MODEL
+Use --all-models sparingly: each binding is a visible selectable agent.
+Aliases apply only to OpenCode, not Hermes.
+
 OpenCode model config: refreshed best-effort via ./bin/install-opencode-config.sh,
 which merges the live model list into opencode.jsonc (other settings preserved).
 If the LLM server is unreachable the install warns and continues;

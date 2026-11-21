@@ -33,6 +33,8 @@ Ask **1–3 related, decision-rich questions per round**. For material alternati
 ## 4. Author the deliverable
 Use the repository's existing task/PRD convention if present; otherwise create `product/work/requirements/YYYYMMDDTHHMMSSZ-task-name.md` (UTC, stable slug; see Git-workspace reference). This tracked file is the **ticket and the prompt**. Follow the [contract](references/requirements-contract.md): metadata with **separate** `requirements_status` and `delivery_status`, context, user stories, scope/non-goals, end-to-end flows, state/data/API/interface rules, nonfunctional/security/compatibility constraints, acceptance cases with stable IDs, verification strategy, dependencies, traceability, decision log, a gap register, and `## Delivery tracking` (actual branch/PR links, status history, owner, next action). Use explicit Gherkin-style Given/When/Then or equally falsifiable examples; include failure assertions, not just happy paths. For greenfield code, specify test *behavior and environment* even if exact commands do not yet exist.
 
+For existing behavior changes also record **regression obligations (RG IDs)**: inspect affected callers/shared state/contracts, state precisely what must remain true, why it is at risk, and what existing or new test will prove preservation. Follow the regression contract in `## Verification strategy`; avoid broad, unrelated regression inventories. For greenfield/no plausible shared risk, record an inspected reason.
+
 For an existing repository, cite inspected paths/tests/versions; do not fabricate script names or claim tests were run. Every acceptance criterion should map to a test or verification method; mark manual/hardware checks and required evidence distinctly.
 
 ## 5. Run the builder-readiness gate
@@ -40,7 +42,7 @@ Independently challenge the draft (delegate read-only to `requirements-reviewer`
 
 Set `requirements_status: READY` and `delivery_status: "READY TO BUILD"` **only when**:
 1. Scope, behavior, precedence, exclusions and owner-approved consequential decisions are resolved.
-2. Every in-scope behavior is tied to objectively checkable acceptance IDs, including critical failures.
+2. Every in-scope behavior is tied to objectively checkable acceptance IDs, including critical failures; affected existing behavior has RG proof or a documented no-risk inspection.
 3. Interfaces, state ownership and external assumptions are specified or safely delegated as bounded implementation choices.
 4. Dependencies and prerequisites are feasible; a validation environment or explicit acceptance procedure is stated.
 5. No `BLOCKING_PRODUCT_DECISION` or unresolved requirement contradiction remains. Safe defaults are recorded and bounded.

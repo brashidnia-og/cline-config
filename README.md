@@ -47,6 +47,26 @@ Four additional focused skills are shared by full/lite profiles:
 
 Use these **only when triggered**. The first two support requirements discovery and design choices; evaluation is for skill/harness improvements, not routine code edits. Clear explanation affects user-facing communication, not acceptance evidence or runtime permissions. These skills were authored for this repository using public skill-creation and research ideas, not copied from third-party sources. See [workflow research](docs/requirements-workflow.md).
 
+## Automated validation
+
+GitHub Actions runs the Python unit/integration suite and installer dry runs on Python 3.11–3.13 for PRs and pushes, and verifies generated agent discovery against the official OpenCode V2 CLI. See [`.github/workflows/validate.yml`](.github/workflows/validate.yml). Parser/fixture tests and agent registration checks do not prove real Android wireless connectivity, live LLM routing/permissions at inference time, or performance improvements; those require explicit hardware/model acceptance evidence.
+
+## Complementary PR #2 capabilities
+
+**Wireless Android hardware testing:** The optional `android-wireless-adb` skill (full/lite) discovers nearby Android debugging devices through adb/mDNS, deduplicates alternate network routes, and supplies precise serials for the project's own hardware tests. See the [skill](full/.cline/skills/android-wireless-adb/SKILL.md). Pairing requires the user's actual code; unit tests alone do not validate live devices.
+
+**Exact OpenCode V2 model selection:** The opt-in `bin/sync-opencode-model-agents.py` generates **visible** named worker agents bound to actual IDs from `opencode models --verbose`, while retaining the selected role's permission constraints. No model-specific aliases are created by the normal installers.
+
+```bash
+python3 bin/sync-opencode-model-agents.py --list
+python3 bin/sync-opencode-model-agents.py --profile full --role scout --model "provider/model-id" --dry-run
+python3 bin/sync-opencode-model-agents.py --profile full --role scout --model "provider/model-id"
+```
+
+Prefer a few selected bindings: `--all-models` creates many visible agents and may increase context/discovery overhead. Verify runtime model and permissions with an actual OpenCode V2 session. Hermes delegation/model profiles are separate; these aliases do not configure Hermes.
+
+The previously proposed **`ai-ready-plan`** skill was intentionally *not* added. PR #1 already brought `define-task-requirements`, `define-product-requirements` and `build-from-requirements` with the canonical tracked `product/work/` format. PR #2's useful regression-preservation idea is instead incorporated into the existing contract as `RG-<ID>` obligations. See [reconciliation notes](docs/pr2-reconciliation.md).
+
 ## Install
 
 Cline loads `.clinerules/` and `.cline/skills/` from a project root (nested folders under `.clinerules/` are loaded recursively). OpenCode reads one global `AGENTS.md` and `SKILL.md` skills from `~/.config/opencode/skills/` (global) or `.opencode/skills/` (project). Global rules/skills apply across projects.
@@ -91,7 +111,7 @@ Scripts detect **macOS** or **Linux** and install into the tools' user directori
 ./bin/install-full.sh --project /path/to/your-project --force   # replace an existing project AGENTS.md
 ```
 
-Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the shared design/pattern/reliability skills described below plus `subagent-model-routing` and `cli-subagent-progress-logging` (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
+Cline gets `.clinerules/` + `.cline/`; OpenCode gets `.opencode/skills/` + `.opencode/agents/`; Cursor gets `.cursor/agents/`, game skills (full profile), and the shared design/pattern/reliability skills described below plus `subagent-model-routing`, `cli-subagent-progress-logging`, and `android-wireless-adb` (both profiles). Codex gets `.agents/skills/` + `.codex/agents/`; Claude Code gets `CLAUDE.md` + `.claude/rules/`, `.claude/skills/`, and `.claude/agents/`. Codex, OpenCode, and Hermes share the generated project `AGENTS.md`. Project MCP settings go to `.codex/config.toml` and `.mcp.json`; Hermes MCP remains profile-scoped. A personal project `AGENTS.md` or `CLAUDE.md` is preserved unless `--force` is passed (a backup is made first). Hermes skills install in its default or selected profile, even in project mode.
 
 ### Codex, Claude Code, and Hermes
 
@@ -164,7 +184,7 @@ The full profile includes two linked skills:
 
 The full profile also installs a read-only `character-art-reviewer` agent for Cursor and OpenCode. Invoke the skills by name in Cline, Cursor, Codex, or OpenCode; in Hermes use `/derive-3d-character-specs` and `/build-3d-game-characters`. The successful Godot case is documented inside both skills, but neither skill hard-codes its 18-character roster. The validation script and spec example travel with the skills.
 
-Cursor receives the six game skills in full and 23 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
+Cursor receives the six game skills in full and 24 shared skills in both profiles: the nine pattern/reliability guides above, `design-for-change`, `decorator-pattern`, `polymorphism-and-strategy`, `state-machine-design`, `subagent-model-routing`, and `cli-subagent-progress-logging`. Codex, Claude Code, and Hermes receive all selected profile skills, including these. `--hermes-profile ID` targets an existing Hermes Bot/profile; the installer leaves that profile's model untouched.
 
 Cursor and the new tool destinations use a `.cline-config-managed` marker. Reinstalling a profile replaces only managed skill directories; switching to lite removes managed full-only skills. An existing unmarked skill of the same name is left untouched with a note. If you downgrade to a revision from before these shared skills were added, that older Cursor installer cannot know to remove them; run `./bin/cursor-shared-skill-cleanup.sh` (or pass a skills directory) to remove managed design/routing skills from the script's explicit allowlist. Keep a copy of the current cleanup script before downgrading. Use `-n` to preview; unmarked same-name personal directories are preserved. The CLI progress-logging skill is outside that cleanup allowlist. OpenCode retains its existing profile-wide replacement behavior.
 
@@ -237,7 +257,7 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 
 **Cline:** no named agent files are installed. Use skills plus Cline’s built-in read-only `use_subagents` research feature.
 
-**`full` agents (17):**
+**`full` agents (18):**
 
 | Agent | Role | Edits? |
 |-------|------|--------|
@@ -258,8 +278,9 @@ Managed files carry `<!-- cline-config:managed -->`; unmarked agents you add you
 | `db-reader` | Schema/SQL/data paths | No |
 | `character-art-reviewer` | Visual QA of character specs and renders | No |
 | `game-performance-reviewer` | Review profiling evidence and performance claims | No |
+| `requirements-reviewer` | Challenge readiness of requirements and acceptance criteria | No |
 
-**`lite`:** `explore`, `planner`, `debugger`, `general`, `code-reviewer`, `orchestrator`, `scout`.
+**`lite` (8):** `explore`, `planner`, `debugger`, `general`, `code-reviewer`, `orchestrator`, `scout`, `requirements-reviewer`.
 
 Same names as some product built-ins (`explore` / `general` / `scout` / `bash`) so `@explore` still works with our local-model prompts. Do not confuse `planner` with OpenCode’s primary `plan` agent (Tab).
 
@@ -367,7 +388,7 @@ full/
 │   ├── 90-documentation.md
 │   ├── cmd/          # command allow/deny policies
 │   └── lang/         # language guidelines
-└── .cline/skills/    # 42 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
+└── .cline/skills/    # 43 skills incl. design/pattern/reliability guides, game development, security auditing, checkpointing, frontend-engineering, CLI sub-agent logging, sub-agent model routing
 ```
 
 OpenCode `AGENTS.md` is generated from `.clinerules/` at install time; skills are copied from `.cline/skills/`; named subagents come from [`agents/catalog/`](agents/catalog/) (see [OpenCode](#opencode) and [OpenCode subagents](#opencode-subagents)).

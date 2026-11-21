@@ -20,6 +20,12 @@ The user's prompt (or project notes) names the active models. For each, establis
 
 If the active set is not stated and cannot be read from configuration, ask once. Do not assume a model from an earlier session is still loaded. Do not assume one local backend is stronger than another — measure.
 
+### OpenCode model-bound agents (opt-in)
+
+OpenCode V2 selects a model through a named agent configuration; **mentioning a model in the task prompt does not switch runtime models**. The opt-in `bin/sync-opencode-model-agents.py` reads `opencode models --verbose` and creates *visible* role/model aliases with an exact `model:` binding and V2 permissions. Only configure this in a `cline-config` checkout when asked, not as a side effect of a coding task.
+
+Run `python3 bin/sync-opencode-model-agents.py --list`, then `python3 bin/sync-opencode-model-agents.py --profile full --role scout --model "provider/exact-model-id"` (or `--profile lite`). Pick the exact installed agent ID for a worker role/model; if missing, report the unavailable binding and do not substitute a different model. `--all-models` is opt-in and creates many visible aliases that may hurt agent discovery. Confirm actual OpenCode V2 agent/model routing and role permissions with a test. This route applies only to OpenCode; Hermes has its own model/profile delegation.
+
 ## 2. Default capability assumptions
 
 Treat each model/backend according to measured capability, not a permanent local-versus-hosted label. Local quantized and small inexpensive hosted models may struggle with long cross-file synthesis or tool reliability, **but this must be verified on the deployed model**; some local models may serve as the lead. Route by tested task outcomes, context quality, tool success, throughput and total verified cost. Give narrow, self-contained briefs to any worker likely to benefit from them.

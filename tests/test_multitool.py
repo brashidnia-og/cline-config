@@ -22,37 +22,54 @@ class MultitoolInstallTests(unittest.TestCase):
 
     def run_installer(self, *args):
         env = dict(os.environ, HOME=str(self.home))
-        return subprocess.run(["python3", str(INSTALLER), *args], env=env,
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(["python3", str(INSTALLER), *args], env=env,
+                                capture_output=True, text=True, check=False)
+        if result.returncode:
+            self.fail(
+                f"multitool {args!r} failed (exit={result.returncode})\\n"
+                f"stdout:\\n{result.stdout}\\nstderr:\\n{result.stderr}"
+            )
+        return result
 
     def test_full_lite_switch_preserves_personal_content(self):
         personal = self.home / ".agents" / "skills" / "private-skill"
         personal.mkdir(parents=True)
         (personal / "SKILL.md").write_text("private\n")
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(34, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(43, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
         self.assertTrue((self.home / ".agents/skills/decorator-pattern/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
+        self.assertTrue((self.home / ".agents/skills/android-wireless-adb/scripts/discover_wireless_devices.py").is_file())
         self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/design-for-change/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/polymorphism-and-strategy/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/state-machine-design/SKILL.md").is_file())
-        self.assertEqual(17, len(list((self.home / ".codex/agents").glob("*.toml"))))
+        self.assertEqual(18, len(list((self.home / ".codex/agents").glob("*.toml"))))
         self.assertTrue((self.home / ".codex/agents/architecture-reviewer.toml").is_file())
         self.run_installer("install", "--profile", "lite")
-        self.assertEqual(19, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
+        self.assertEqual(28, len(list((self.home / ".agents/skills").glob("*/SKILL.md"))) - 1)
         self.assertTrue((self.home / ".agents/skills/decorator-pattern/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/cli-subagent-progress-logging/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/subagent-model-routing/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/design-for-change/SKILL.md").is_file())
         self.assertTrue((self.home / ".agents/skills/state-machine-design/references/gameplay.md").is_file())
         self.assertFalse((self.home / ".codex/agents/architecture-reviewer.toml").exists())
-        self.assertEqual(7, len(list((self.home / ".claude/agents").glob("*.md"))))
+        self.assertEqual(8, len(list((self.home / ".claude/agents").glob("*.md"))))
         self.assertFalse((self.home / ".claude/agents/architecture-reviewer.md").exists())
         self.assertEqual("private\n", (personal / "SKILL.md").read_text())
         self.run_installer("install", "--profile", "full")
-        self.assertEqual(34, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
+        self.assertEqual(43, len(list((self.home / ".hermes/skills/cline-config").glob("*/SKILL.md"))))
         self.assertTrue((self.home / ".codex/agents/architecture-reviewer.toml").is_file())
+
+    def test_profile_switch_preserves_opt_in_model_agents(self):
+        # The alias marker is distinct from ordinary role installers.
+        alias = self.home / ".config/opencode/agents/cline-model-scout-example.md"
+        alias.parent.mkdir(parents=True)
+        content = "model: example/qwen\\n<!-- cline-config:model-agent:v1 -->\\n"
+        alias.write_text(content)
+        self.run_installer("install", "--profile", "full")
+        self.run_installer("install", "--profile", "lite")
+        self.assertEqual(content, alias.read_text())
 
     def test_project_rules_force_and_dry_run(self):
         agents = self.project / "AGENTS.md"

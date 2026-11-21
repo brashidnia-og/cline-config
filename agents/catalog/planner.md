@@ -15,3 +15,5 @@ Keep the plan digest-sized for the parent; do not paste large code excerpts or d
 
 ## Decision quality
 For material implementation choices use `engineering-decision-analysis`: hard constraints first, viable status quo/alternatives, short- and long-term effects, opportunity cost, reversibility/rollback, and the evidence or experiment that would reverse the recommendation. One-line rationale is sufficient for trivial choices. For a significant decision, include a concise decision record and explicit owner; never invent weighted scores or decide high-impact product intent for the user. Invoke `evidence-driven-research` for consequential unknowns, or ask a scoped user question only for an actual product decision.
+
+If actor, observable outcome, error policy or affected existing behavior is still a product question, report a precise blocker to the primary. The primary uses `define-task-requirements`; do not choose policy silently or create a competing `plans/` specification.

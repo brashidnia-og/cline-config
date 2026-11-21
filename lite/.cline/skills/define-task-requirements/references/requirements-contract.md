@@ -29,11 +29,21 @@ Both product and feature documents use the headings below; explicitly write `Not
 4. `## Interfaces and data`: APIs/events/schemas/ownership/authentication, storage/retention, integration contracts, versioning. Product PRDs additionally describe cross-feature seams.
 5. `## Quality and constraints`: security/privacy, platform, performance budgets and conditions, accessibility, reliability, operating cost, rollout/rollback and invariants.
 6. `## Acceptance criteria`: stable `AC-<ID>` clauses, concrete expected result and negative/failure cases; mapping from each criterion to automated test, integration check, hardware validation, or explicit manual evidence.
-7. `## Verification strategy`: required environments, fixtures, evidence, baseline, feature and end-to-end test plan. Commands must be inspected if claiming they exist.
+7. `## Verification strategy`: required environments, fixtures, evidence, baseline, feature and end-to-end test plan. For changes to existing behavior, document preserved-behavior **regression obligations (RG IDs)**; commands must be inspected if claiming they exist.
 8. `## Dependencies and delivery`: gates, cross-feature dependencies, rollout steps, delegated decision boundaries. The product PRD contains a feature index described below.
 9. `## Decisions and defaults`: decision ID, user-authorized vs safe-default vs inferred, alternatives, why and impact; include known constraints and deferred choices.
 10. `## Open gaps`: `None blocking` only after reviewing known ambiguities; otherwise gap ID, category, owner, impact and next question/research target.
 11. `## Delivery tracking`: owner, current blocker/next action, real branch/PR links or `None yet`, related specs, acceptance evidence and timestamped status history. Frontmatter is authoritative for the current statuses.
+
+## Regression contract for existing behavior
+
+For changes to existing systems, **preserve relevant existing observables explicitly**, separate from new/changed acceptance criteria. Identify at-risk callers, shared state and schemas via repository inspection; avoid an exhaustive inventory of unrelated functionality. Assign stable `RG-<ID>` identifiers and write this table under the feature's `## Verification strategy`:
+
+| Regression ID | Existing behavior to preserve | Why affected / inspected path | Existing proof | Required proof |
+|---|---|---|---|---|
+| RG-001 | <observable invariant> | <shared caller or contract path> | <test or none> | <test or manual evidence> |
+
+If inspection shows no plausible regression surface, record `Not applicable — no shared affected caller/state/contract; inspected <paths>`. Greenfield features may have no existing behavior; explain why. A material RG row with missing verification blocks `COMPLETE` just like an unverified acceptance ID. Do not fabricate tests or treat an absence of test failures as a meaningful regression pass.
 
 ## Product feature index
 
@@ -53,7 +63,7 @@ Paths are relative to the PRD file's directory and must point to real files. A `
 
 - In-scope choices with materially different product outcomes have an explicit, user-authorized decision. Do not treat default-by-silence as approval.
 - Boundaries include error and recovery paths and authorization rules.
-- Every important outcome has observable, falsifiable acceptance criteria and a verification plan.
+- Every important outcome has observable, falsifiable acceptance criteria and a verification plan; affected existing behavior has RG evidence or documented non-applicability after inspecting callers/contracts.
 - Known technical uncertainties are classified as bounded build-time research or blockers, rather than unknowingly passed as missing requirements.
 - Product PRD features are READY and integrated with consistent interfaces and sequencing.
 - No unresolved `BLOCKING_PRODUCT_DECISION` / contradictory requirement in the document or linked in-scope features.
@@ -86,6 +96,11 @@ No corrupted snapshot can update the live game. Recovery writes are atomic.
 - AC-F002: Truncated snapshot is rejected without mutating state, asserted by corruption test.
 ## Verification strategy
 Automated persistence integration tests; manual restart test on target device; record evidence.
+
+### Regression contract
+| Regression ID | Existing behavior to preserve | Why affected / inspected path | Existing proof | Required proof |
+|---|---|---|---|---|
+| RG-001 | An existing match can start without a snapshot | Existing and recovery paths share initialization | Existing match-start test | Run match-start test on this revision; record output |
 ## Dependencies and delivery
 No feature prerequisites.
 ## Decisions and defaults
